@@ -1,0 +1,199 @@
+<%- include("../partials/header") %>
+<style>
+    .error-message {
+        color: red;
+        font-size: 0.75rem;
+        display: none;
+    }
+</style>
+
+<div class="container col-4 login_wrap widget-taber-content p-30 background-white border-radius-5">
+    <div class="padding_eight_all bg-white">
+        <div class="heading_s1">
+            <h3 class="mb-30">Create an Account</h3>
+        </div>
+
+        <form id="signupForm" method="post" action="/signup" onsubmit="return validateForm()">
+            <div class="form-group">
+                <input type="text" id="name" name="name" placeholder="Enter Name">
+                <div id="error-1" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <input type="text" id="email" name="email" placeholder="Enter Email">
+                <div id="error-2" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <input type="text" name="phone" id="phone" placeholder="Enter Phone">
+                <div id="error-3" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" id="password" placeholder="Enter Password">
+                <div id="error-4" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <input type="password" name="cPassword" id="cpassword" placeholder="Confirm password">
+                <div id="error-5" class="error-message"></div>
+            </div>
+            
+            <% if (locals.message && message.length > 0) { %>
+                <div id="alertMessage" class="alert alert-danger">
+                    <%= message %>
+                </div>
+            <% } %>
+            <div class="form-group">
+                <button type="submit" class="btn btn-fill-out btn-block hover-up mt-25" name="login">Submit &amp; Register</button>
+            </div>
+        </form>
+
+        <div class="text-muted text-center pt-25">Already have an account? <a href="/login">Login now</a></div>
+    </div>
+</div>
+
+<%- include("../partials/footer") %>
+<script>
+    const nameid = document.getElementById("name");
+    const emailid = document.getElementById("email");
+    const phoneid = document.getElementById("phone");
+    const passid = document.getElementById("password");
+    const cpassid = document.getElementById("cpassword");
+    const error1 = document.getElementById("error-1");
+    const error2 = document.getElementById("error-2");
+    const error3 = document.getElementById("error-3");
+    const error4 = document.getElementById("error-4");
+    const error5 = document.getElementById("error-5");
+    const signform = document.getElementById("signupForm");
+
+    function nameValidateChecking() {
+        const nameval = nameid.value;
+        const namepattern = /^[A-Za-z\s]+$/;
+
+        if (nameval.trim() === "") {
+            error1.style.display = "block";
+            error1.innerHTML = "Please enter a valid name";
+            return false;
+        } else if (!namepattern.test(nameval)) {
+            error1.style.display = "block";
+            error1.innerHTML = "Name can only contain alphabets and spaces";
+            return false;
+        } else {
+            error1.style.display = "none";
+            error1.innerHTML = "";
+            return true;
+        }
+    }
+
+    function emailValidateChecking() {
+        const emailval = emailid.value;
+        const emailpattern = /^([a-zA-Z0-9._-]+)@([a-zA-Z0-9.-]+)\.([a-zA-Z]{2,4})$/;
+
+        if (!emailpattern.test(emailval)) {
+            error2.style.display = "block";
+            error2.innerHTML = "Invalid Format";
+            return false;
+        } else {
+            error2.style.display = "none";
+            error2.innerHTML = "";
+            return true;
+        }
+    }
+    async function phoneValidateChecking() {
+    const phoneval = phoneid.value.trim();
+
+    // Basic validation for empty or incorrect length
+    if (!phoneval) {
+        error3.style.display = "block";
+        error3.innerHTML = "Enter a valid phone number";
+        return false;
+    } else if (phoneval.length !== 10) {
+        error3.style.display = "block";
+        error3.innerHTML = "Phone number should be 10 digits";
+        return false;
+    } else if (!/^\d{10}$/.test(phoneval)) {
+        error3.style.display = "block";
+        error3.innerHTML = "Phone number should only contain digits";
+        return false;
+    } else {
+        // Hide any existing error message
+        error3.style.display = "none";
+        error3.innerHTML = "";
+
+        // Check for uniqueness
+        
+
+        // Phone number is valid and unique
+        return true;
+    }
+}
+
+async function checkPhoneNumberUnique(phoneNumber) {
+    try {
+        const response = await fetch('/check-phone-number', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ phoneNumber: phoneNumber })
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        return data.isUnique;
+    } catch (error) {
+        console.error("Error checking phone number uniqueness:", error);
+        
+        // Show a SweetAlert in case of a server or network error
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'There was an error checking the phone number. Please try again later.',
+            confirmButtonText: 'OK'
+        });
+        return false;
+    }
+}
+
+
+
+
+    function passValidateChecking() {
+        const passval = passid.value;
+        const cpassval = cpassid.value;
+        const alpha = /[a-zA-Z]/;
+        const digit = /\d/;
+
+        if (passval.length < 8) {
+            error4.style.display = "block";
+            error4.innerHTML = "Should contain at least 8 characters";
+            return false;
+        } else if (!alpha.test(passval) || !digit.test(passval)) {
+            error4.style.display = "block";
+            error4.innerHTML = "Should contain numbers and alphabets";
+            return false;
+        } else {
+            error4.style.display = "none";
+            error4.innerHTML = "";
+        }
+
+        if (passval !== cpassval) {
+            error5.style.display = "block";
+            error5.innerHTML = "Passwords do not match";
+            return false;
+        } else {
+            error5.style.display = "none";
+            error5.innerHTML = "";
+            return true;
+        }
+    }
+
+    function validateForm() {
+        const isNameValid = nameValidateChecking();
+        const isEmailValid = emailValidateChecking();
+        const isPhoneValid = phoneValidateChecking();
+        const isPassValid = passValidateChecking();
+
+        return isNameValid && isEmailValid && isPhoneValid && isPassValid;
+    }
+</script>

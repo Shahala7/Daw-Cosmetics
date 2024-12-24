@@ -1,0 +1,358 @@
+<%- include("../partials/header") %>
+<main class="main">
+  <div class="page-header breadcrumb-wrap">
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="/" rel="nofollow">Home</a>
+            <span></span>
+            <a href="/shop" rel="nofollow">Shop</a>
+            <span></span> cart
+        </div>
+    </div>
+</div>
+    <section class="mt-50 mb-50">
+      <div class="container">
+        <div class="row">
+          <div class="col-9">
+            <div class="table-responsive">
+              <table class="table shopping-summery text-center clean">
+                <thead>
+                  <tr class="main-heading">
+                    <th scope="col">Image</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Quantity</th>
+                    <th scope="col">Remove</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (cart && cart.items && cart.items.length > 0) { %>
+                    <% cart.items.forEach(function(item) { %>
+                      <tr data-product-id="<%= item.productId._id || item.productId %>">
+                        <td class="image product-thumbnail">
+                          <img src="/uploads/product-images/<%= item.productId.productImage[0] %>" alt="<%= item.productName %>" />
+                        </td>
+                        <td class="product-des product-name">
+                          <h5 class="product-name">
+                            <a href="/product/<%= item.productId._id || item.productId %>">
+                              <%= item.productName %>
+                            </a>
+                          </h5>
+                          <p class="font-xs">
+                            Category: <%= item.category %><br />
+                            Brand: <%= item.brand %>
+                          </p>
+                        </td>
+                        <td class="price" data-title="Price">
+                          ₹<%= item.totalPrice %>
+                          <br />
+                          <small class="text-muted text-nowrap">
+                            ₹<%= item.price %> / per item
+                          </small>
+                        </td>
+                        <td class="text-center" data-title="Stock">
+                          `<div class="quantity-controls">
+                            <button 
+                                class="quantity-btn" 
+                                onclick="changeQuantity('<%= item.productId._id %>', -1)"
+                                aria-label="Decrease quantity"
+                            >−</button>
+                            <span 
+                                id="quantity-<%= item.productId._id %>" 
+                                class="quantity-display"
+                            ><%= item.quantity %></span>
+                            <button 
+                                class="quantity-btn"
+                                onclick="changeQuantity('<%= item.productId._id %>', 1)"
+                                aria-label="Increase quantity"
+                            >+</button>
+                        </div>
+                        <div class="price-info">
+                            <span 
+                                id="product-total-<%= item.productId._id %>" 
+                                class="product-total"
+                            >₹<%= item.totalPrice %></span>
+                        </div>`
+                        </td>
+                        <td class="action" data-title="Remove">
+                          <button type="button" class="btn btn-sm delete-item"onclick="deleteItem('<%= item.productId._id || item.productId %>')">
+                            <i class="fi-rs-trash"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="5" class="text-center">
+                        <p class="lead mb-4">No item found in Cart</p>
+                      </td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-3">
+            <div class="border p-md-4 p-30 border-radius cart-totals">
+              <div class="heading_s1 mb-3">
+                <h4>PRICE DETAILS</h4>
+              </div>
+              <div class="table-responsive">
+                <table class="table">
+                  <tbody>
+                    <tr>
+                      <td class="cart_total_label">Shipping</td>
+                      <td class="cart_total_amount">
+                        <i class="ti-gift mr-5"></i> Free Shipping
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="cart_total_label">Total</td>
+                      <td class="cart_total_amount">
+                        <span id="cart-grand-total" class="font-lg fw-900 text-brand">
+                          ₹<%= grandTotal %>
+                      </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <a href="/checkout" class="btn">
+                <i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut
+               </a>
+            </div>
+          </div>
+         </div>
+         </div> 
+      </div>
+   </div> 
+       </section> 
+</main> 
+
+<script>
+ // Updated Cart Frontend Functions
+ function deleteItem(productId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'Do you want to remove this item from your cart?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, remove it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/api/cart/items/${productId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the item row
+                    const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+                    if (row) {
+                        row.remove();
+                    }
+
+                    // Update the grand total
+                    const grandTotalElement = document.querySelector('.cart_total_amount .text-brand');
+                    if (grandTotalElement && data.newGrandTotal !== undefined) {
+                        grandTotalElement.textContent = `₹${data.newGrandTotal.toFixed(2)}`;
+                    }
+
+                    // If cart is empty, show empty message
+                    const tbody = document.querySelector('tbody');
+                    if (data.cartItemsCount === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="text-center">
+                                    <p class="lead mb-4">No item found in Cart</p>
+                                </td>
+                            </tr>
+                        `;
+                    }
+
+                    Swal.fire(
+                        'Removed!',
+                        'Item has been removed from your cart.',
+                        'success'
+                    );
+                } else {
+                    Swal.fire(
+                        'Error!',
+                        data.error || 'Failed to delete item',
+                        'error'
+                    );
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire(
+                    'Error!',
+                    'Failed to delete item',
+                    'error'
+                );
+            });
+        }
+    });
+}
+
+// 
+const changeQuantity = async (productId, count) => {
+    try {
+        // Validate inputs before sending
+        if (!productId || typeof count !== 'number') {
+            console.error('Invalid inputs:', { productId, count });
+            return;
+        }
+
+        // Get current quantity
+        const currentQuantityElement = document.getElementById(`quantity-${productId}`);
+        const currentQuantity = parseInt(currentQuantityElement.textContent);
+        
+        // Check if adding would exceed 5 items
+        if (currentQuantity + count > 5) {
+            Swal.fire(
+                'Limit Exceeded',
+                'You can only add up to 5 items of this product to your cart.',
+                'warning'
+            );
+            return;
+        }
+
+        // Check if reducing would go below 1
+        if (currentQuantity + count < 1) {
+            Swal.fire(
+                'Minimum Quantity',
+                'Minimum quantity is 1. Use the delete button to remove the item.',
+                'warning'
+            );
+            return;
+        }
+
+        const response = await fetch(`${window.location.origin}/api/cart/quantity`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include', // Include cookies if using sessions
+            body: JSON.stringify({
+                productId: productId,
+                count: count
+            })
+        });
+
+        const data = await response.json();
+        
+        if (!data.status) {
+            // Handle error cases
+            Swal.fire(
+                'Error!',
+                data.error || 'Failed to update quantity',
+                'error'
+            );
+            return;
+        }
+
+        // Update quantity display
+        if (currentQuantityElement) {
+            currentQuantityElement.textContent = data.quantityInput;
+        }
+        
+        // Update product total price
+        const productTotalElement = document.getElementById(`product-total-${productId}`);
+        if (productTotalElement) {
+            productTotalElement.textContent = `₹${(data.price * data.quantityInput).toFixed(2)}`;
+        }
+        
+        // Update grand total
+        const grandTotalElement = document.querySelector('.cart_total_amount .text-brand');
+        if (grandTotalElement) {
+            grandTotalElement.textContent = `₹${data.grandTotal.toFixed(2)}`;
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Error updating quantity:', error);
+        Swal.fire(
+            'Error!',
+            'Failed to update quantity',
+            'error'
+        );
+    }
+};
+  </script>
+
+<style>
+    .delete-item {
+        background: none;
+        border: none;
+        color: #dc3545;
+        cursor: pointer;
+        padding: 5px;
+        transition: all 0.3s ease;
+    }
+
+    .delete-item:hover {
+        color: #c82333;
+        transform: scale(1.1);
+    }
+
+    .delete-item i {
+        font-size: 1.2em;
+    }
+    .quantity-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #f5f5f5;
+    padding: 4px;
+    border-radius: 6px;
+    user-select: none;
+}
+
+.quantity-btn {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+
+.quantity-btn:hover {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+}
+
+.quantity-btn:active {
+    background-color: #dee2e6;
+}
+
+.quantity-display {
+    min-width: 30px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.price-info {
+    margin-top: 8px;
+    font-weight: 500;
+}
+
+.product-total {
+    color: #2c3e50;
+}
+
+</style>
+
+    <%- include("../partials/footer") %>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .otp-container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        .otp-container h2 {
+            margin-bottom: 1rem;
+        }
+        .otp-container .form-control {
+            margin-bottom: 1rem;
+        }
+        .otp-container .btn {
+            width: 100%;
+        }
+        .message {
+            margin-bottom: 1rem;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<div class="otp-container">
+    <h2>Verify OTP</h2>
+    <% if (message) { %>
+        <div class="message"><%= message %></div>
+    <% } %>
+    <form id="otpForm" action="/verify-otp" method="POST">
+        <div class="form-group">
+            <label for="otp">Enter OTP:</label>
+            <input type="text" class="form-control" id="otp" name="otp" placeholder="Enter your OTP" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Verify OTP</button>
+    </form>
+    <hr>
+    <button id="resendOtpBtn" class="btn btn-secondary" disabled>Resend OTP (<span id="timer">60</span>s)</button>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Timer for Resend OTP button
+        let timer = 60;
+        const timerInterval = setInterval(function() {
+            timer--;
+            $('#timer').text(timer);
+            if (timer <= 0) {
+                clearInterval(timerInterval);
+                $('#resendOtpBtn').removeAttr('disabled');
+            }
+        }, 1000);
+
+        // OTP form validation
+        $('#otpForm').on('submit', function(e) {
+            const otp = $('#otp').val();
+            if (!otp || isNaN(otp) || otp.length !== 6) {
+                e.preventDefault();
+                alert('Please enter a valid 6-digit OTP.');
+            }
+        });
+
+        // Resend OTP functionality
+        $('#resendOtpBtn').on('click', function() {
+            $.ajax({
+                url: '/resend-otp',
+                type: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        alert('OTP has been resent successfully!');
+                        // Reset timer and disable button again
+                        timer = 60;
+                        $('#timer').text(timer);
+                        $('#resendOtpBtn').attr('disabled', true);
+                        setInterval(function() {
+                            timer--;
+                            $('#timer').text(timer);
+                            if (timer <= 0) {
+                                $('#resendOtpBtn').removeAttr('disabled');
+                            }
+                        }, 1000);
+                    } else {
+                        alert('Failed to resend OTP. Please try again.');
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while resending OTP.');
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
+

@@ -1,0 +1,296 @@
+<%- include("../partials/header") %>
+
+<head>
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self'; font-src 'self' data:;">
+    
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    
+
+</head>
+
+<style>
+ 
+
+    .home-slider {
+        overflow: hidden; /* Hide any content that overflows the container */
+    }
+
+    .swiper-container {
+        max-width: 100%; /* Limit the maximum width to 100% of the parent container */
+        overflow: hidden; /* Hide any content that overflows the container */
+    }
+
+    .swiper-wrapper {
+        display: flex; /* Ensure the wrapper items are displayed in a row */
+    }
+
+    .swiper-slide {
+        width: 100%; /* Make each slide take up the full width of the container */
+        box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    }
+   /* Container for the entire section */
+#category-section {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Flexbox for category block */
+.category-block {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+/* Category button styling */
+.category-button {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    width: 150px;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease;
+}
+
+.category-button:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Category image styling */
+.category-img {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 10px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* Category text styling */
+.category-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Subcategory dropdown styling */
+.subcategory-dropdown {
+    display: none;
+    margin-top: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    z-index: 1;
+}
+
+/* Subcategory item styling */
+.subcategory-item {
+    display: block;
+    padding: 5px 10px;
+    color: #333;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.subcategory-item:hover {
+    background-color: #f0f0f0;
+}
+
+/* No subcategories available text */
+.no-subcategories {
+    padding: 5px 10px;
+    color: #999;
+    font-style: italic;
+}
+ 
+</style>
+
+        <section class="popular-categories section-padding mt-15 mb-25">
+            <div class="container wow fadeIn animated">
+                <h3 class="section-title mb-20"><span>Popular</span> Categories</h3>
+                <div class="carausel-6-columns-cover position-relative">
+                    <div class="slider-arrow slider-arrow-2 carausel-6-columns-arrow" id="carausel-6-columns-arrows">
+                    </div>
+                    <div class="carausel-6-columns" id="carausel-6-columns">
+                        <div class="card-1">
+                            <figure class=" img-hover-scale overflow-hidden">
+                                <a href="products-grid-right.html"><img
+                                        src="/uploads/product-images/m2catLip.jpg" alt=""></a>
+                            </figure>
+                            <a>LIP</a>
+                            <!-- <h5><a href="products-grid-right.html">T-Shirt</a></h5> -->
+                        </div>
+                        <div class="card-1">
+                            <figure class=" img-hover-scale overflow-hidden">
+                                <a href="products-grid-right.html"> <img
+                                        src="/uploads/product-images/eyecat2.jpg" alt=""></a>
+                            </figure>
+                            <a>EYE</a>
+                            <!-- <h5><a href="products-grid-right.html">Bags</a></h5> -->
+                        </div>
+                        <div class="card-1">
+                            <figure class=" img-hover-scale overflow-hidden">
+                                <a href="products-grid-right.html"><img
+                                        src="/uploads/product-images/skin.png" alt=""></a>
+                            </figure>
+                            <a>SKIN</a>
+                            <!-- <h5><a href="products-grid-right.html">Sandan</a></h5> -->
+                        </div>
+                        <div class="card-1">
+                            <figure class=" img-hover-scale overflow-hidden">
+                                <a href="products-grid-right.html"><img
+                                        src="/uploads/product-images/hairl.jpg" alt=""></a>
+                            </figure>
+                            <a>HAIR</a>
+                            <!-- <h5><a href="products-grid-right.html">Scarf Cap</a></h5> -->
+                        </div>
+                        <div class="card-1">
+                            <figure class=" img-hover-scale overflow-hidden">
+                                <a href="products-grid-right.html"><img
+                                        src="/uploads/product-images/nail33.jpg" alt=""></a>
+                            </figure>
+                            <a>NAIL</a>
+
+                            <!-- <h5><a href="products-grid-right.html">Shoes</a></h5> -->
+                        </div>
+                        <div class="card-1">
+                            <figure class=" img-hover-scale overflow-hidden">
+                                <a href="products-grid-right.html"><img
+                                        src="/uploads/product-images/f1111.jpg" alt=""></a>
+                            </figure>
+                            <!-- <h5><a href="products-grid-right.html">Pillowcase</a></h5> -->
+                            <a>FACE</a>
+                        </div>
+                    </div>
+                </div>
+        </section>
+        <!-- Featured, Popular, Newly Added ---Product List -->
+
+
+        <section class="product-tabs section-padding position-relative wow fadeIn animated">
+            <div class="bg-square"></div>
+            <div class="container">
+                <div class="tab-header">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                   
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="nav-tab-three" data-bs-toggle="tab" data-bs-target="#tab-three"
+                                type="button" role="tab" aria-controls="tab-three" aria-selected="false">New
+                                added</button>
+                        </li>
+                    </ul>
+                    <a href="#" class="view-more d-none d-md-flex">View More<i
+                            class="fi-rs-angle-double-small-right"></i></a>
+                </div>
+                <!--End nav-tabs-->
+                <div class="tab-content wow fadeIn animated" id="myTabContent">
+                    <div class="tab-pane fade show active" id="tab-one" role="tabpanel" aria-labelledby="tab-one">
+                        <div class="row product-grid-4">
+
+
+                            <% for (let i=0; i < products.length; i++) { %>
+
+                                <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+                                    <div class="product-cart-wrap mb-30">
+                                        <div class="product-img-action-wrap">
+                                            <div class="product-img product-img-zoom">
+                                                <a href="/productDetails?id=<%=products[i].id%>">
+                                                    <img class="default-img"
+                                                        src="/uploads/product-images/<%=products[i].productImage[0]%>" alt="">
+                                                    
+                                                </a>
+                                            </div>
+                                            <div class="product-action-1">
+                                               
+                                                <a aria-label="Add To Wishlist" class="action-btn hover-up"
+                                                    href="products-wishlist.html"><i class="fi-rs-heart"></i></a>
+                                               
+                                            </div>
+                                            <div class="product-badges product-badges-position product-badges-mrg">
+                                                <span class="hot">New</span>
+                                            </div>
+                                        </div>
+                                        <div class="product-content-wrap">
+                                            <div class="product-brand">
+                                                <a href="products-grid-right.html"><%-products[i].brand%></a>
+                                            </div>
+                                            <h2><a href="products-product-right.html"><%-products[i].productName%></a></h2>
+                                            <!-- <div class="rating-result" title="90%">
+                                                <span>
+                                                    <span>90%</span>
+                                                </span>
+                                            </div> -->
+                                            <div class="product-price">
+                                                <span>₹<%-products[i].salePrice.toLocaleString('en-IN')%> </span>
+                                                <span class="old-price">₹<%-products[i].regularPrice.toLocaleString('en-IN')%></span>
+                                            </div>
+                                            <div class="product-action-1 show">
+                                                <a aria-label="Add To Cart" class="action-btn hover-up"
+                                                    href="products-cart.html"><i
+                                                        class="fi-rs-productsping-bag-add"></i></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <% } %>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--End product-grid-4-->
+            </div>
+            <!--En tab three (New added)-->
+            </div>
+            <!--End tab-content-->
+            </div>
+        </section>
+
+        <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+        <script>
+            var swiper = new Swiper('.swiper-container', {
+                slidesPerView: 1,
+                spaceBetween: 10,
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                },
+            });
+            function toggleDropdown(dropdownId) {
+    var dropdown = document.getElementById(dropdownId);
+    if (dropdown.style.display === "none" || dropdown.style.display === "") {
+        dropdown.style.display = "block";
+    } else {
+        dropdown.style.display = "none";
+    }
+}
+fetch('/some-protected-route', {
+    method: 'GET',
+    credentials: 'include'
+})
+.then(response => {
+    if (response.status === 403) {
+        alert('You have been blocked. Please contact support.');
+        window.location.href = '/login';
+    } else {
+        // handle the normal response
+    }
+});
+
+        </script>
+
+
+        <%- include("../partials/footer") %>

@@ -1,0 +1,250 @@
+<%- include("../partials/header") %>
+<section class="mt-50 mb-50">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- Breadcrumbs -->
+                <div class="page-header breadcrumb-wrap">
+                    <div class="container">
+                        <div class="breadcrumb">
+                            <a href="/" rel="nofollow">Home</a>
+                            <span></span>
+                            <a href="/shop" rel="nofollow">Shop</a>
+                            <span></span> Product detail
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-detail accordion-detail">
+                    <div class="row mb-50">
+                        <div class="col-md-6 col-sm-12 col-xs-12">
+                            <!-- Product Gallery -->
+                            <div class="detail-gallery">
+                                <span class="zoom-icon"><i class="fi-rs-search"></i></span>
+                                <div class="product-image-slider">
+                                    <% for (let j = 0; j < data.productImage.length; j++) { %>
+                                    <figure class="border-radius-10">
+                                        <img src="/uploads/product-images/<%= data.productImage[j] %>" alt="product image">
+                                    </figure>
+                                    <% } %>
+                                </div>
+                                <div class="slider-nav-thumbnails pl-15 pr-15">
+                                    <% for (let j = 0; j < data.productImage.length; j++) { %>
+                                    <div><img src="/uploads/product-images/<%= data.productImage[j] %>" alt="product image"></div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-12 col-xs-12">
+                            <div class="detail-info">
+                                <h2 class="title-detail">
+                                    <%= data.productName %>
+                                </h2>
+                                <!-- Product Info -->
+                                <div class="product-detail-rating">
+                                    <div class="pro-details-brand">
+                                        <span> Brand: <%= data.brand %></span>
+                                    </div>
+                                </div>
+                                <div class="clearfix product-price-cover">
+                                    <div class="product-price primary-color float-left">
+                                        <ins><span class="text-brand">₹<%= data.salePrice.toLocaleString('en-IN') %></span></ins>
+                                        <ins><span class="old-price font-md ml-15">₹<%= data.regularPrice.toLocaleString('en-IN') %></span></ins>
+                                        <span class="save-price font-md color3 ml-15">
+                                            <% if (!totalOffer) { %>
+                                            No Offers
+                                            <% } else { %>
+                                            <%= totalOffer %>% Offer
+                                            <% } %>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="bt-1 border-color-1 mt-15 mb-15"></div>
+                                <div class="short-desc mb-30">
+                                    <h3>Description</h3>
+                                    <p><%= data.description %></p>
+                                </div>
+                                <div class="pro-details-brand">
+                                </div>
+                                <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                                <div class="d-flex justify-content gap-3">
+                                    <button onclick="handleAddToCart(this, '<%= data._id %>')" class="btn btn-success">Add to Cart</button>
+                                    
+                                    <a href="/checkout?id=<%= data.id %>&isSingle=true">
+                                        <button class="btn btn-primary" type="submit">Buy Now</button>
+                                    </a>
+                                </div>
+                                <ul class="product-meta font-xs color-grey mt-50">
+                                    <li class="mb-5">ID: <%= data.id %></li>
+                                    <li class="mb-5">Category: <%= data.category %></li>
+                                    <li>
+                                        Availability: 
+                                        <% if (!data.quantity || data.quantity < 1) { %>
+                                            <span class="out-of-stock text-danger ml-5">Out of Stock</span>
+                                        <% } else { %>
+                                            <span class="in-stock text-success ml-5"><%= data.quantity %> Items In Stock</span>
+                                        <% } %>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Related Products Section -->
+                    <div class="related-products-section">
+                        <h3 class="section-title">Related Products</h3>
+                        <div class="row" id="related-products-container"></div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script>
+    
+// Helper function to handle different error scenarios
+function handleErrorResponse(response) {
+    const statusCode = response.statusCode;
+    
+    switch (statusCode) {
+        case 401:
+            // User not authenticated
+            Swal.fire({
+                title: 'Login Required',
+                text: 'Please login to add items to cart',
+                icon: 'warning',
+                showConfirmButton: true,
+                confirmButtonText: 'Login Now'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/login';
+                }
+            });
+            break;
+
+        case 404:
+            // Product not found or out of stock
+            Swal.fire({
+                title: 'Not Available',
+                text: response.message || 'Product is not available',
+                icon: 'error',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            break;
+
+        case 400:
+            // Invalid quantity or stock limitation
+            Swal.fire({
+                title: 'Stock Limitation',
+                text: response.message || 'Cannot add more items',
+                icon: 'warning',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            break;
+
+        default:
+            // Generic error message
+            Swal.fire({
+                title: 'Error',
+                text: response.message || 'Something went wrong!',
+                icon: 'error',
+                timer: 2000,
+                showConfirmButton: false
+            });
+    }
+}function handleAddToCart(button, prodId) {
+    // Disable button and show loading state
+    const originalText = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+    addToCart(prodId).finally(() => {
+        // Re-enable button and restore original text
+        button.disabled = false;
+        button.innerHTML = originalText;
+    });
+}
+
+// Update the original addToCart function to return the Promise
+function addToCart(prodId) {
+    return new Promise((resolve, reject) => {
+        var quantity = 1;
+        console.log(prodId, 'prodId');
+        
+        $.ajax({
+            url: `/addToCart?id=${prodId}`,
+            method: "post",
+            data: {
+                quantity: quantity,
+                productId: prodId
+            },
+            success: (response) => {
+                console.log('Response:', response);
+
+                if (response.status === true) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Product added to cart successfully',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    resolve(response);
+                } else {
+                    handleErrorResponse(response);
+                    reject(response);
+                }
+            },
+            error: (xhr) => {
+                console.error('Error:', xhr);
+                
+                let errorMessage = 'Something went wrong! Please try again.';
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    errorMessage = response.message || errorMessage;
+                } catch (e) {
+                    console.error('Error parsing response:', e);
+                }
+
+                handleErrorResponse({
+                    status: false,
+                    message: errorMessage,
+                    statusCode: xhr.status
+                });
+                reject(xhr);
+            }
+        });
+    });
+}
+    // Function to fetch related products
+    
+</script>
+
+<style>
+    .related-products-section {
+        margin-top: 50px;
+    }
+
+    .related-product-item {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+    }
+
+    .related-product-item img {
+        max-width: 100px;
+        margin-bottom: 10px;
+    }
+
+    .related-product-item h4 {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+</style>
+
+<%- include("../partials/footer") %>

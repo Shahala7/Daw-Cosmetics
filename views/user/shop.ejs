@@ -1,0 +1,542 @@
+<%- include("../partials/header") %>
+
+<style>
+.pagination {
+  display: flex;
+  justify-content: center;
+}
+
+.btn {
+  /* Add your button styling here */
+  margin: 0 5px;
+  padding: 5px 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  text-decoration: none;
+  color: #333;
+}
+
+.active {
+  /* Add styles for the active page */
+ 
+  color: #fff;
+}
+
+.btn:hover {
+  /* Add styles for button hover state */
+  background-color: #ddd;
+}
+
+
+.price-filter-inner {
+        display: flex;
+        justify-content: space-between; /* Adjust as needed */
+    }
+
+    .price-button {
+        flex: 1;
+        height: 40px; /* Adjust the height as needed */
+        width: 100%; /* Fill the container width */
+        margin-right: 5px; /* Adjust the margin between buttons as needed */
+        border: 1px solid #ddd;
+    }
+    selector {
+  user-select: none;
+  -webkit-user-select: none; /* Add this line to support Safari 3+ */
+  -moz-user-select: none; /* For Firefox */
+  -ms-user-select: none; /* For Internet Explorer */
+}
+
+</style>
+<div class="input-group input-group-sm border border-1 border-grey rounded-pill" style="width: 600px; margin-left: 430px;">
+    <form action="/search" method="GET" class="d-flex w-100">
+        <input type="text" 
+               class="form-control border-0 rounded-pill" 
+               placeholder="Search products" 
+               name="search" 
+               required>
+        <button class="btn btn-primary border-0" type="submit">Search</button>
+    </form>
+</div>
+<section class="mt-50 mb-50">
+    <div class="container">
+        <div class="row flex-row-reverse">
+            <div class="col-lg-9">
+                <div class="shop-product-fillter">  
+                    <div class="totall-product">
+                       <% if (locals.count) { %>
+                        <p> We found <strong class="text-brand"><%= locals.count %></strong> items for you!</p>
+                       <% } %>
+                    </div>
+                    <div class="sort-by-product-area">
+                       
+                        <div class="sort-by-product-wrap">
+                            <div class="sort-by">
+                                <span><i class="fi-rs-apps-sort"></i>Sort by:</span>
+                            </div>
+                            <div class="sort-by-dropdown-wrap">
+                                
+                        <select id="sortByDropdown" onchange="handleSortChange(this.value)" title="Sort products by">
+                         <option value="featured" selected>Featured</option>
+                         <option value="AZ">Alphabetically:A-Z</option>
+                         <option value="ZA">Alphabetically:Z-A</option>
+                         <option value="lowToHigh">Price: Low to High</option>
+                         <option value="highToLow">Price: High to Low</option>
+                         <option value="newToOld">Date:New to Old</option>
+                         <option value="oldToNew">Date:Old to New</option>
+                         </select>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+                <div class="row product-grid-3">
+
+
+
+                    <% for (let i = 0; i < product.length; i++) { %>
+                        <div class="col-lg-4 col-md-4 col-12 col-sm-6">
+                            <div class="product-cart-wrap mb-30">
+                                <div class="product-img-action-wrap">
+                                    <div class="product-img product-img-zoom">
+                                        <a href="/productDetails?id=<%=product[i].id%>">
+                                            <img class="default-img" src="/uploads/product-images/<%=product[i].productImage[0]%>" alt="">
+                                            <!-- <img class="hover-img" src="assets/imgs/shop/product-2-2.jpg" alt=""> -->
+                                        </a>
+                                    </div>
+                                    <div class="product-action-1">
+  
+                                        <a aria-label="Add To Wishlist" class="action-btn hover-up" href="javascript:void(0);" onclick="addToWishlist('<%= product[i]._id %>')"><i class="fi-rs-heart"></i></a>
+
+                                    </div>
+                                    <div class="product-badges product-badges-position product-badges-mrg">
+                                        <span class="hot">Hot</span>
+                                    </div>
+                                </div>
+                                <div class="product-content-wrap">
+                                    <div class="product-category">
+                                        <a href="shop-grid-right.html"><%= product[i].brand %></a>
+                                    </div>
+                                    <h2><a href="shop-product-right.html"><%= product[i].productName %></a></h2>
+                                    <!-- <div class="rating-result" title="90%">
+                                        <span>
+                                            <span>90%</span>
+                                        </span>
+                                    </div> -->
+                                    <div class="product-price">
+                                        <span>₹<%= product[i].salePrice.toLocaleString('en-IN') %></span>
+                                        <span class="old-price">₹<%= product[i].regularPrice.toLocaleString('en-IN') %></span>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                   <% } %>
+
+
+                </div>
+
+                <% if (totalPages) { %>
+                    <div class="pagination">
+                      <% if (currentPage > 1) { %>
+                        <button class="btn btn-sm"><a href="/shop?page=<%= currentPage - 1 %>">Previous</a></button>
+                      <% } %>
+                  
+                      <% for (let i = 1; i <= totalPages; i++) { %> 
+                        <button class="btn btn-sm <%= i === currentPage ? 'active' : '' %>">
+                          <a href="/shop?page=<%= i %>"><%= i %></a>
+                        </button>
+                      <% } %>
+                  
+                      <% if (currentPage < totalPages) { %>
+                        <button class="btn btn-sm"><a href="/shop?page=<%= currentPage + 1 %>">Next</a></button>
+                      <% } %>
+                    </div>
+                  <% } %>
+                  
+            </div>
+            <div class="col-lg-3 primary-sidebar sticky-sidebar">
+                <div class="widget-category mb-30">
+                    <h5 class="section-title style-1 mb-30 wow fadeIn animated">Category</h5>
+                    <ul class="categories">
+                        
+                        <% for (let i = 0; i < category.length; i++) { %>
+                            <li><a href="/filter?category=<%= category[i]._id %>"><%= category[i].name %></a></li>
+                        <% } %> 
+
+
+                    </ul>
+                </div>
+
+                <div class="widget-category mb-30">
+                    <h5 class="section-title style-1 mb-30 wow fadeIn animated">Brands</h5>
+                    <ul class="categories brands">
+                      <% for (let i = 0; i < brand.length; i++) { %>
+                        <li <% if (i === 0) { %> class="active" <% } %> >
+                          <a href="/filter?brand=<%= brand[i]._id %>"><%= brand[i].brandName %></a>
+                        </li>
+                      <% } %>
+                    </ul>
+                  </div>
+                <!-- Fillter By Price -->
+                <div class="sidebar-widget price_range range mb-30">
+                    <div class="widget-header position-relative mb-20 pb-10">
+                        <h5 class="widget-title mb-10">Fill by price</h5>
+                        <div class="bt-1 border-color-1"></div>
+                    </div>
+                    <div class="price-filter">
+                        <div class="price-filter-inner">
+                            <form id="price-filter-form">
+                                <div class="price-options">
+                                    <a href="/filterPrice?gt=0&lt=500"><button type="button" class="price-button" data-value="under-500">Under RS500</button></a>
+                                    <a href="/filterPrice?gt=50000&lt=100000"><button type="button" class="price-button" data-value="50k-to-100k">RS500 -RS1000</button></a>
+                                    <a href="/filterPrice?gt=100000&lt=150000"><button type="button" class="price-button" data-value="100k-to-150k">RS1000 - RS1500</button></a>
+                                    <a href="/filterPrice?gt=150000&lt=1000000"><button type="button" class="price-button" data-value="above-150k">Above RS1500</button></a>
+                                    <input type="hidden" id="selected-price" name="selected-price" value="">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+</section>
+
+<script>
+
+function addToWishlist(productId) {
+    // Show loading state or indicator if desired
+    fetch('/api/wishlist/add', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId: productId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status) {
+            // Show success message using SweetAlert2
+            Swal.fire({
+                title: 'Success!',
+                text: 'Product added to wishlist',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } else if (data.error === "User not found") {
+            // Show login required message
+            Swal.fire({
+                title: 'Login Required',
+                text: 'Please login to add items to wishlist',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Login',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/login';
+                }
+            });
+        } else {
+            // Show error message
+            Swal.fire({
+                title: 'Error!',
+                text: 'Failed to add product to wishlist',
+                icon: 'error',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error!',
+            text: 'Something went wrong',
+            icon: 'error',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    });
+}
+ 
+ function handleSortChange(option) {
+    // Show loading state
+    const productGrid = document.querySelector('.product-grid-3');
+    if (productGrid) {
+        productGrid.style.opacity = '0.5';
+    }
+
+    // Get current filters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const category = urlParams.get('category') || '';
+    const brand = urlParams.get('brand') || '';
+    const page = urlParams.get('page') || 1;
+
+    // Make the fetch request
+    fetch('/api/products/sort', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            option,
+            category,
+            brand,
+            page: parseInt(page)
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.status && result.data) {
+            updateProductGrid(result.data);
+            // Update URL without page reload
+            const newUrl = `/shop?option=${option}&category=${category}&brand=${brand}&page=${page}`;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+        } else {
+            console.error('Error sorting products:', result.error);
+            showError('Failed to sort products');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showError('Failed to sort products');
+    })
+    .finally(() => {
+        // Remove loading state
+        if (productGrid) {
+            productGrid.style.opacity = '1';
+        }
+    });
+}
+
+function updateProductGrid(data) {
+    const productGrid = document.querySelector('.row.product-grid-3');
+    if (!productGrid) return;
+
+    const products = data.currentProduct;
+    let html = '';
+
+    products.forEach(product => {
+        html += `
+            <div class="col-lg-4 col-md-4 col-12 col-sm-6">
+                <div class="product-cart-wrap mb-30">
+                    <div class="product-img-action-wrap">
+                        <div class="product-img product-img-zoom">
+                            <a href="/productDetails?id=${product.id}">
+                                <img class="default-img" src="/uploads/product-images/${product.productImage[0]}" alt="">
+                            </a>
+                        </div>
+                        <div class="product-action-1">
+                            <a aria-label="Add To Wishlist" class="action-btn hover-up" href="javascript:void(0);" onclick="addToWishlist('${product._id}')">
+                                <i class="fi-rs-heart"></i>
+                            </a>
+                        </div>
+                        <div class="product-badges product-badges-position product-badges-mrg">
+                            <span class="hot">Hot</span>
+                        </div>
+                    </div>
+                    <div class="product-content-wrap">
+                        <div class="product-category">
+                            <a href="shop-grid-right.html">${product.brand}</a>
+                        </div>
+                        <h2><a href="shop-product-right.html">${product.productName}</a></h2>
+                        <div class="product-price">
+                            <span>₹${product.salePrice.toLocaleString('en-IN')}</span>
+                            <span class="old-price">₹${product.regularPrice.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="product-action-1 show">
+                            <a aria-label="Add To Cart" class="action-btn hover-up" href="/addToCart">
+                                <i class="fi-rs-shopping-bag-add"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    productGrid.innerHTML = html;
+
+    // Update product count
+    const countElement = document.querySelector('.totall-product strong');
+    if (countElement) {
+        countElement.textContent = data.count;
+    }
+
+    // Update pagination
+    updatePagination(data.totalPages, data.currentPage);
+}
+
+function updatePagination(totalPages, currentPage) {
+    const paginationDiv = document.querySelector('.pagination');
+    if (!paginationDiv) return;
+
+    let paginationHtml = '';
+    
+    if (currentPage > 1) {
+        paginationHtml += `
+            <button class="btn btn-sm">
+                <a href="javascript:void(0);" onclick="handlePageChange(${currentPage - 1})">Previous</a>
+            </button>
+        `;
+    }
+
+    for (let i = 1; i <= totalPages; i++) {
+        paginationHtml += `
+            <button class="btn btn-sm ${i === currentPage ? 'active' : ''}">
+                <a href="javascript:void(0);" onclick="handlePageChange(${i})">${i}</a>
+            </button>
+        `;
+    }
+
+    if (currentPage < totalPages) {
+        paginationHtml += `
+            <button class="btn btn-sm">
+                <a href="javascript:void(0);" onclick="handlePageChange(${currentPage + 1})">Next</a>
+            </button>
+        `;
+    }
+
+    paginationDiv.innerHTML = paginationHtml;
+}
+
+function handlePageChange(page) {
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('page', page);
+    const option = urlParams.get('option') || 'featured';
+    handleSortChange(option);
+}
+
+function showError(message) {
+    // Implement your error notification system
+    alert(message);
+}
+</script>
+    
+<section class="section-padding footer-mid">
+    <div class="container pt-15 pb-20">
+        <div class="row">
+            <div class="col-lg-4 col-md-6">
+                <div class="widget-about font-md mb-md-5 mb-lg-0">
+                    <div class="logo logo-width-1 wow fadeIn animated">
+                        <a href="index.html"><img src="/uploads/product-images/Screenshot (586).png" alt="logo"></a>
+                    </div>
+                    <h5 class="mt-20 mb-10 fw-600 text-grey-4 wow fadeIn animated">Contact</h5>
+                    <p class="wow fadeIn animated">
+                        <strong>Address: </strong>562 Wellington Road, Street 32, San Francisco
+                    </p>
+                    <p class="wow fadeIn animated">
+                        <strong>Phone: </strong>+01 2222 365 /(+91) 01 2345 6789
+                    </p>
+                    <p class="wow fadeIn animated">
+                        <strong>Hours: </strong>10:00 - 18:00, Mon - Sat
+                    </p>
+                    <h5 class="mb-10 mt-30 fw-600 text-grey-4 wow fadeIn animated">Follow Us</h5>
+                    <div class="mobile-social-icon wow fadeIn animated mb-sm-5 mb-md-0">
+                        <a href="#"><img src="/user-assets/imgs/theme/icons/icon-facebook.svg" alt=""></a>
+                        <a href="#"><img src="/user-assets/imgs/theme/icons/icon-twitter.svg" alt=""></a>
+                        <a href="#"><img src="/user-assets/imgs/theme/icons/icon-instagram.svg" alt=""></a>
+                        <a href="#"><img src="/user-assets/imgs/theme/icons/icon-pinterest.svg" alt=""></a>
+                        <a href="#"><img src="/user-assets/imgs/theme/icons/icon-youtube.svg" alt=""></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-3">
+                <h5 class="widget-title wow fadeIn animated">About</h5>
+                <ul class="footer-list wow fadeIn animated mb-sm-5 mb-md-0">
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Delivery Information</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms &amp; Conditions</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Support Center</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-6  col-md-3">
+                <h5 class="widget-title wow fadeIn animated">My Account</h5>
+                <ul class="footer-list wow fadeIn animated">
+                    <li><a href="#">Sign In</a></li>
+                    <li><a href="#">View Cart</a></li>
+                    <li><a href="#">My Wishlist</a></li>
+                    <li><a href="#">Track My Order</a></li>
+                    <li><a href="#">Help</a></li>
+                    <li><a href="#">Order</a></li>
+                </ul>
+            
+        </div>
+    </div>
+</section>
+<div class="container pb-20 wow fadeIn animated">
+    <div class="row">
+        <div class="col-12 mb-20">
+            <div class="footer-bottom"></div>
+        </div>
+        <div class="col-lg-6">
+            <p class="float-md-left font-sm text-muted mb-0">&copy; 2022, <strong class="text-brand">Evara</strong> - HTML Ecommerce Template </p>
+        </div>
+        <div class="col-lg-6">
+            <p class="text-lg-end text-start font-sm text-muted mb-0">
+                Designed by <a href="http://alithemes.com/" target="_blank">Alithemes.com</a>. All rights reserved
+            </p>
+        </div>
+    </div>
+</div>
+</footer>
+<!-- Preloader Start -->
+<div id="preloader-active">
+<div class="preloader d-flex align-items-center justify-content-center">
+    <div class="preloader-inner position-relative">
+        <div class="text-center">
+            <h5 class="mb-10">Now Loading</h5>
+            <div class="loader">
+                <div class="bar bar1"></div>
+                <div class="bar bar2"></div>
+                <div class="bar bar3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<!-- Vendor JS-->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.all.min.js"></script>
+<!-- <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"> -->
+<script src="/user-assets/js/vendor/modernizr-3.6.0.min.js"></script>
+<script src="/user-assets/js/vendor/jquery-3.6.0.min.js"></script>
+<script src="/user-assets/js/vendor/jquery-migrate-3.3.0.min.js"></script>
+<script src="/user-assets/js/vendor/bootstrap.bundle.min.js"></script>
+<script src="/user-assets/js/plugins/slick.js"></script>
+<script src="/user-assets/js/plugins/jquery.syotimer.min.js"></script>
+<script src="/user-assets/js/plugins/wow.js"></script>
+<script src="/user-assets/js/plugins/jquery-ui.js"></script>
+<script src="/user-assets/js/plugins/perfect-scrollbar.js"></script>
+<script src="/user-assets/js/plugins/magnific-popup.js"></script>
+<script src="/user-assets/js/plugins/select2.min.js"></script>
+<script src="/user-assets/js/plugins/waypoints.js"></script>
+<script src="/user-assets/js/plugins/counterup.js"></script>
+<script src="/user-assets/js/plugins/jquery.countdown.min.js"></script>
+<script src="/user-assets/js/plugins/images-loaded.js"></script>
+<script src="/user-assets/js/plugins/isotope.js"></script>
+<script src="/user-assets/js/plugins/scrollup.js"></script>
+<script src="/user-assets/js/plugins/jquery.vticker-min.js"></script>
+<script src="/user-assets/js/plugins/jquery.theia.sticky.js"></script>
+<script src="/user-assets/js/plugins/jquery.elevatezoom.js"></script>
+<!-- Template  JS -->
+<script src="/user-assets/js/maind134.js?v=3.4"></script>
+<script src="/user-assets/js/shopd134.js?v=3.4"></script>
+
+
+
+
+
+</body>
+
+
+<!-- Mirrored from wp.alithemes.com/html/evara/evara-frontend/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 15 Jul 2023 10:09:48 GMT -->
+</html>

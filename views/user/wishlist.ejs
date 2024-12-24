@@ -1,0 +1,202 @@
+<%- include("../partials/header") %>
+
+<main class="main">
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/" rel="nofollow">Home</a>
+                <span></span>
+                <a href="/shop" rel="nofollow">Shop</a>
+                <span></span> Wishlist
+            </div>
+        </div>
+    </div>
+    <section class="mt-50 mb-50">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="table-responsive">
+                        <table class="table shopping-summery text-center">
+                            <thead>
+                                <tr class="main-heading">
+                                    <th scope="col" colspan="2">Product</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Stock Status</th>
+                                    <th scope="col">Action</th>
+                                    <th scope="col">Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% for (let i=0; i < data.length; i++) { %>
+                                    <tr>
+                                        <td class="image product-thumbnail">
+                                            <img src="/uploads/product-images/<%= data[i].image %>" alt="#"></td>
+                                        <td class="product-des product-name">
+                                            <h5 class="product-name">
+                                                <a href="shop-product-right.html"><%= data[i].productName %></a>
+                                            </h5>
+                                            <p class="font-xs">
+                                                <%= data[i].category %><br>
+                                                <%= data[i].brand %>
+                                            </p>
+                                        </td>
+                                        <td class="price" data-title="Price">
+                                            <span>₹<%= data[i].salePrice %></span>
+                                        </td>
+                                        <td class="text-center" data-title="Stock">
+                                            <span class="color3 font-weight-bold">
+                                                <% if (data[i].units > 0) { %>
+                                                    <p class="text-success">In Stock</p>
+                                                <% } else { %>
+                                                    <p class="text-danger">Out Of Stock</p>
+                                                <% } %>
+                                            </span>
+                                        </td>
+                                        <td class="text-right" data-title="Cart">
+                                            <button 
+                                                class="btn btn-success <%= data[i].units <= 0 ? 'disabled' : '' %>" 
+                                                onclick="handleAddToCart(this, '<%= data[i].productId %>')"
+                                                <%= data[i].units <= 0 ? 'disabled' : '' %>
+                                            >
+                                                Add to Cart
+                                            </button>
+                                        </td>                                            
+                                        <td class="action" data-title="Remove">
+                                            <a href="/deleteWishlist?id=<%= data[i].productId %>">
+                                                <i class="fi-rs-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    // Helper function to handle different error scenarios
+    function handleErrorResponse(response) {
+        const statusCode = response.statusCode;
+        
+        switch (statusCode) {
+            case 401:
+                // User not authenticated
+                Swal.fire({
+                    title: 'Login Required',
+                    text: 'Please login to add items to cart',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Login Now'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/login';
+                    }
+                });
+                break;
+
+            case 404:
+                // Product not found or out of stock
+                Swal.fire({
+                    title: 'Not Available',
+                    text: response.message || 'Product is not available',
+                    icon: 'error',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                break;
+
+            case 400:
+                // Invalid quantity or stock limitation
+                Swal.fire({
+                    title: 'Stock Limitation',
+                    text: response.message || 'Cannot add more items',
+                    icon: 'warning',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                break;
+
+            default:
+                // Generic error message
+                Swal.fire({
+                    title: 'Error',
+                    text: response.message || 'Something went wrong!',
+                    icon: 'error',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+        }
+    }
+
+    function handleAddToCart(button, prodId) {
+        // Disable button and show loading state
+        const originalText = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+        addToCart(prodId).finally(() => {
+            // Re-enable button and restore original text
+            button.disabled = false;
+            button.innerHTML = originalText;
+        });
+    }
+
+    // Update the original addToCart function to return the Promise
+    function addToCart(prodId) {
+        return new Promise((resolve, reject) => {
+            var quantity = 1;
+            console.log(prodId, 'prodId');
+            
+            $.ajax({
+                url: `/addToCart?id=${prodId}`,
+                method: "post",
+                data: {
+                    quantity: quantity,
+                    productId: prodId
+                },
+                success: (response) => {
+                    console.log('Response:', response);
+
+                    if (response.status === true) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Product added to cart successfully',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        resolve(response);
+                    } else {
+                        handleErrorResponse(response);
+                        reject(response);
+                    }
+                },
+                error: (xhr) => {
+                    console.error('Error:', xhr);
+                    
+                    let errorMessage = 'Something went wrong! Please try again.';
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        errorMessage = response.message || errorMessage;
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                    }
+
+                    handleErrorResponse({
+                        status: false,
+                        message: errorMessage,
+                        statusCode: xhr.status
+                    });
+                    reject(xhr);
+                }
+            });
+        });
+    }
+</script>
+
+
+    <%- include("../partials/footer") %>
