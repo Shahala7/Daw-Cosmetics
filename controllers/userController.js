@@ -70,55 +70,62 @@ const securePassword = async (password) => {
 // Signup User
 const signupUser = async (req, res) => {
     try {
-        const { email, phone } = req.body;
-        console.log(req.body,'req1');
+        const { email, phone, password, cPassword } = req.body;
+
+        // Check if the email or phone number already exists
+        const findUser = await User.findOne({ $or: [{ email }, { phone }] });
+
+        if (password !== cPassword) {
+            return res.render("signup", { message: "The confirm password does not match" });
+        }
+
+        if (findUser) {
+            const message = findUser.email === email
+                ? "User with this email already exists"
+                : "User with this phone number already exists";
+            return res.render("signup", { message });
+        }
+
+        // Generate OTP and send email
+        const otp = generateOtp();
+        console.log(otp, "Generated OTP");
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'shahalaahammedh7@gmail.com',
+                pass: 'mnno xbnl edoy ozhi',
+            },
+            port: 587,
+            secure: false,
+            tls: {
+                rejectUnauthorized: false,
+            },
+            logger: true,  // Enable debugging logs
+            debug: true,   // Show detailed logs
+        });
         
-        // Check if the email already exists
-        const findUser = await User.findOne({ email });
-        
-        // Check if the phone number already exists
-        const findPhone = await User.findOne({ phone });
-        
-        if (req.body.password === req.body.cPassword) {
-            if (!findUser && !findPhone) {
-                const otp = generateOtp();
-                console.log(otp);
-                const transporter = nodemailer.createTransport({
-                    service: "gmail",
-                    port: 587,
-                    secure: false,
-                    requireTLS: true,
-                    auth: {
-                        user: 'shahalaahammedh7@gmail.com',
-                        pass: 'hmpo rdza wpsi uyjn'
-                    }                     
-                        
-                });
-                const info = await transporter.sendMail({
-                    from: 'shahalaahammedh7@gmail.com',
-                    to: email,
-                    subject: "Verify Your Account ✔",
-                    text: `Your OTP is ${otp}`,
-                    html: `<b><h4>Your OTP is ${otp}</h4><br><a href="#">Click here</a></b>`,
-                });console.log(info,'info1');
-                if (info) {
-                    req.session.userOtp = otp;
-                    req.session.userData = { ...req.body, otpExpiry: Date.now() + 10 * 60 * 1000 }; // Store OTP expiry
-                    res.render("verify-otp", { email, message: "" });
-                } else {
-                    res.json("email-error");
-                }
-            } else if (findPhone) {
-                res.render("signup", { message: "User with this phone number already exists" });
-            } else {
-                res.render("signup", { message: "User with this email already exists" });
-            }
+
+
+        const info = await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: "Verify Your Account ✔",
+            text: `Your OTP is ${otp}`,
+            html: `<b><h4>Your OTP is ${otp}</h4><br><a href="#">Click here</a></b>`,
+        });
+
+        if (info) {
+            // Store OTP and user data in session
+            req.session.userOtp = otp;
+            req.session.userData = { ...req.body, otpExpiry: Date.now() + 10 * 60 * 1000 }; // 10 minutes
+            return res.render("verify-otp", { email, message: "" });
         } else {
-            res.render("signup", { message: "The confirm password does not match" });
+            return res.json({ error: "Failed to send email. Please try again." });
         }
     } catch (error) {
-        console.log(error.message);
-        res.render("signup", { message: "An error occurred. Please try again." });
+        console.error("Error during signup:", error);
+        return res.render("signup", { message: "An error occurred. Please try again." });
     }
 };
 

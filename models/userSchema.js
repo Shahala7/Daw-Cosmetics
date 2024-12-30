@@ -16,7 +16,7 @@ const userSchema = Mongoose.Schema({
         email: {
             type: String,
             required: true,
-            unique: true
+            unique: false
         },
         phone: {
             type: String,
