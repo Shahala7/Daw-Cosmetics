@@ -609,6 +609,7 @@ const adminDashboard = async (req, res) => {
 
         // Calculate total revenue
         const totalRevenue = deliveredOrders.reduce((sum, order) => sum + order.totalPrice, 0);
+console.log(totalRevenue ,'total revenue');
 
         // Calculate products added per month
         const productPerMonth = Array(12).fill(0);

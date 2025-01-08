@@ -20,13 +20,7 @@ const userSchema = Mongoose.Schema({
         },
         phone: {
             type: String,
-            unique: true,  // Ensures that the mobile number is unique
-            // validate: {
-            //   validator: function(v) {
-            //     return /\d{10}/.test(v);  // Example for validating a 10-digit mobile number
-            //   },
-            //   message: props => `${props.value} is not a valid mobile number!`
-            // }
+            unique: true,  
           },
         password: {
             type: String,

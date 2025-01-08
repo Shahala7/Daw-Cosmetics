@@ -21,7 +21,7 @@ passport.deserializeUser(async (id, done) => {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:5000/auth/google/callback", // Ensure this matches your registered redirect URI
+    callbackURL: "https://dawcosmetics.shop/auth/google/callback", // Ensure this matches your registered redirect URI
     passReqToCallback: true
 },
 async (request, accessToken, refreshToken, profile, done) => {

@@ -451,12 +451,17 @@ const filterProduct = async (req, res) => {
         const findCategory = category ? await Category.findOne({ _id: category }) : null;
         const findBrand = brand ? await Brand.findOne({ _id: brand }) : null;
 
+console.log(findCategory,"findcategory");
+
+
         const query = {
             isBlocked: false,
         };
 
         if (findCategory) {
             query.category = findCategory.name;
+        
+            
         }
 
         if (findBrand) {
@@ -464,7 +469,9 @@ const filterProduct = async (req, res) => {
         }
 
         const findProducts = await Product.find(query);
+        
         const categories = await Category.find({ isListed: true });
+
 
         let itemsPerPage = 6;
         let currentPage = parseInt(req.query.page) || 1;
@@ -472,6 +479,9 @@ const filterProduct = async (req, res) => {
         let endIndex = startIndex + itemsPerPage;
         let totalPages = Math.ceil(findProducts.length / 6);
         const currentProduct = findProducts.slice(startIndex, endIndex);
+
+console.log(currentProduct,'currentProduct');
+
 
         res.render("shop", {
             user: user,

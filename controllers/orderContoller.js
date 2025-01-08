@@ -269,12 +269,14 @@ const processPayment = async (
       case 'online':
          
           const generatedOrder = await generateOrderRazorpay(newOrder.userId, newOrder.totalPrice);
-          if(generatedOrder){
-           console.log("yess iam");
+          if(generatedOrder && generatedOrder.id){
+            console.log("Razorpay Order Generated Successfully:", generatedOrder);
 
             orderDone = await newOrder.save();
             await Order.findOneAndUpdate({_id:orderDone._id},{status: "Confirmed"})
              await Cart.deleteOne({ userId: userId });
+          }else{
+            console.error("Generated Order is Invalid:", generatedOrder);
           }
 
           console.log(generatedOrder,"gggdorder");
