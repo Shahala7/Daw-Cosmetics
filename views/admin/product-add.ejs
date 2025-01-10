@@ -80,7 +80,7 @@
                             <select class="form-select" name="category" id="categorySelect">
                                 <option value="">Select Category</option>
                                 <% cat.forEach(category => { %>
-                                    <option value="<%= category._id %>"><%= category.name %></option>
+                                    <option value="<%= category.name %>"><%= category.name %></option>
                                 <% }); %>
                             </select>
                         </div>
@@ -90,7 +90,7 @@
                             <select class="form-select" name="subcategory" id="subcategorySelect">
                                 <option value="">Select Subcategory</option>
                                 <% subcategories.forEach(function(subcategory) { %> 
-                                    <option value="<%= subcategory._id %>"><%= subcategory.subcategoryName %></option>
+                                    <option value="<%= subcategory.subcategoryName %>"><%= subcategory.subcategoryName %></option>
                                 <% }) %>
                             </select>
                         </div>

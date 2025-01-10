@@ -1,5 +1,6 @@
 const User = require("../models/userSchema")
 const Product = require("../models/productSchema");
+const mongoose = require('mongoose');
 
 
 const getWishlistPage = async (req, res) => {
@@ -8,7 +9,6 @@ const getWishlistPage = async (req, res) => {
         console.log(userId);
         const findUser = await User.findOne({ _id: userId })
         // console.log(findUser.wishlist, "user");
-        
         res.render("wishlist", {data : findUser.wishlist, user : userId})
     } catch (error) {
         console.log(error.message);

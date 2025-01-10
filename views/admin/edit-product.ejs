@@ -81,7 +81,7 @@
                             <select class="form-select" name="category" id="categorySelect">
                                 <option value="">Select Category</option>
                                 <% cat.forEach(category => { %>
-                                    <option value="<%= category._id %>" <%= category._id.toString() === product.category.toString() ? 'selected' : '' %>>
+                                    <option value="<%= category.name %>" <%= category.name.toString() === product.category.toString() ? 'selected' : '' %>>
                                         <%= category.name %>
                                     </option>
                                 <% }); %>
@@ -94,7 +94,7 @@
                             <select class="form-select" name="subcategory" id="subcategorySelect">
                                 <% subcategories.forEach(subcategory => { %>
                                     <option value="<%= subcategory._id %>"
-                                        <%= (subcategory._id && product.subcategory && subcategory._id.toString() === product.subcategory.toString()) ? 'selected' : '' %>>
+                                        <%= (subcategory.subcategoryName && product.subcategory && subcategory.subcategoryName.toString() === product.subcategory.toString()) ? 'selected' : '' %>>
                                         <%= subcategory.subcategoryName %>
                                     </option>
                                 <% }); %>

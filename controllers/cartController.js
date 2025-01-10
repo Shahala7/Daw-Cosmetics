@@ -4,6 +4,7 @@ const Product = require("../models/productSchema")
 const Cart = require('../models/cartSchema');
 const mongodb = require("mongodb")
 const mongoose = require('mongoose');
+const { findById } = require("../models/orderSchema");
 const getCartPage = async (req, res) => {
     try {
         const userId = req.session.user;
@@ -101,16 +102,14 @@ const getCartPage = async (req, res) => {
 // Update addToCart to store correct product data
 const addToCart = async (req, res) => {
   try {
-    console.log('hlooooo ');
-    
       const userId = req.session.user;
+      const userData = await User.findById({_id: userId})
       if (!userId) {
           return res.status(401).json({ status: false, message: "User not authenticated" });
       }
        
       const productId = req.body.productId;
       const quantity = parseInt(req.body.quantity) || 1;
-       console.log(productId,'prrooid');
        
       const product = await Product.findById(productId);
       if (!product) {
@@ -148,12 +147,19 @@ const addToCart = async (req, res) => {
               }],
               grandTotal: product.salePrice * quantity
           });
+
+          if(userData.wishlist.some(item => item.productId === productId)){
+            await User.findByIdAndUpdate(userId, { $pull: { wishlist: { productId: productId } } });
+          }
+
       } else {
           // Update existing cart
           const existingItemIndex = cart.items.findIndex(
               item => item.productId.toString() === productId.toString()
           );
-
+          if(userData.wishlist.some(item => item.productId === productId)){
+            await User.findByIdAndUpdate(userId, { $pull: { wishlist: { productId: productId } } });
+          }
           if (existingItemIndex !== -1) {
               // Check if adding quantity exceeds available stock
               const newQuantity = cart.items[existingItemIndex].quantity + quantity;
