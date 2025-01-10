@@ -155,16 +155,16 @@ const verifyOtp = async (req, res) => {
 
             // Set user session after successful signup
             req.session.user = newUser._id;
-            res.redirect("/");  // Redirect to home or any other route after successful verification
+            res.json({ success: true, message: "Otp verified success" });
 
         } else {
             // OTP is incorrect or expired
-            res.render("verify-otp", { email: req.session.userData.email, message: "Invalid or expired OTP. Please try again." });
+            res.json({ success: false, email: req.session.userData.email,message: "Invalid or expired OTP. Please try again." });
         }
 
     } catch (error) {
         console.error(error.message);
-        res.status(500).render("verify-otp", { message: "Something went wrong. Please try again." });
+        res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
     }
 };
 

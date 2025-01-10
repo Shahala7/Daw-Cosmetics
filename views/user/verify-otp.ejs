@@ -43,12 +43,12 @@
     <% if (message) { %>
         <div class="message"><%= message %></div>
     <% } %>
-    <form id="otpForm" action="/verify-otp" method="POST">
+    <form id="otpForm" action="">
         <div class="form-group">
             <label for="otp">Enter OTP:</label>
             <input type="text" class="form-control" id="otp" name="otp" placeholder="Enter your OTP" required>
         </div>
-        <button type="submit" class="btn btn-primary">Verify OTP</button>
+        <button id="otpSubmit" type="submit" class="btn btn-primary">Verify OTP</button>
     </form>
     <hr>
     <button id="resendOtpBtn" class="btn btn-secondary" disabled>Resend OTP (<span id="timer">60</span>s)</button>
@@ -70,11 +70,33 @@
 
         // OTP form validation
         $('#otpForm').on('submit', function(e) {
+            e.preventDefault(); // Prevent form submission
+
             const otp = $('#otp').val();
             if (!otp || isNaN(otp) || otp.length !== 6) {
-                e.preventDefault();
                 alert('Please enter a valid 6-digit OTP.');
+                return;
             }
+
+            $.ajax({
+                url: '/verify-otp',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ otp: otp }),
+                success: function(response) {
+                    if (!response.success) {
+                        // Show error message
+                        alert(response.message || 'Incorrect OTP. Please try again.');
+                    } else {
+                        // Redirect to the desired page
+                        window.location.href = '/';
+                        
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while verifying OTP.');
+                }
+            });
         });
 
         // Resend OTP functionality
