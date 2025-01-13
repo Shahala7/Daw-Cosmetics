@@ -173,8 +173,22 @@ const salesToday = async (req, res) => {
                     },
                     status: "Delivered"
                 }
+            },
+            {
+                $sort: { createdOn: -1 } // Sort within the aggregation pipeline
+            },
+            {
+                $lookup: {
+                    from: "products", // The name of the Product collection
+                    localField: "product._id", // Field in the Order collection
+                    foreignField: "_id", // Field in the Product collection
+                    as: "productDetails" // Name of the new array field for joined data
+                }
+            },
+            {
+                $unwind: "$productDetails" // Optional: Flatten the productDetails array
             }
-        ]).sort({ createdOn: -1 })
+        ]);
 
 
         let itemsPerPage = 5
@@ -222,8 +236,22 @@ const salesWeekly = async (req, res) => {
                     },
                     status: "Delivered"
                 }
+            },
+            {
+                $sort: { createdOn: -1 } // Sort within the aggregation pipeline
+            },
+            {
+                $lookup: {
+                    from: "products", // The name of the Product collection
+                    localField: "product._id", // Field in the Order collection
+                    foreignField: "_id", // Field in the Product collection
+                    as: "productDetails" // Name of the new array field for joined data
+                }
+            },
+            {
+                $unwind: "$productDetails" // Optional: Flatten the productDetails array
             }
-        ]).sort({ createdOn: -1 })
+        ]);
 
         let itemsPerPage = 5
         let currentPage = parseInt(req.query.page) || 1
@@ -262,10 +290,23 @@ const salesMonthly = async (req, res) => {
                     },
                     status: "Delivered"
                 }
+            },
+            {
+                $sort: { createdOn: -1 } // Sort within the aggregation pipeline
+            },
+            {
+                $lookup: {
+                    from: "products", // The name of the Product collection
+                    localField: "product._id", // Field in the Order collection
+                    foreignField: "_id", // Field in the Product collection
+                    as: "productDetails" // Name of the new array field for joined data
+                }
+            },
+            {
+                $unwind: "$productDetails" // Optional: Flatten the productDetails array
             }
-        ]).sort({ createdOn: -1 })  
+        ]);         
         // .then(data=>console.log(data))
-        console.log("ethi");
         console.log(orders);
 
         let itemsPerPage = 5
@@ -294,13 +335,27 @@ const salesYearly = async (req, res) => {
             {
                 $match: {
                     createdOn: {
-                        $gte: startofYear,
-                        $lt: endofYear
+                        $gte: startOfTheYear,
+                        $lt: endOfTheYear
                     },
                     status: "Delivered"
                 }
+            },
+            {
+                $sort: { createdOn: -1 } // Sort within the aggregation pipeline
+            },
+            {
+                $lookup: {
+                    from: "products", // The name of the Product collection
+                    localField: "product._id", // Field in the Order collection
+                    foreignField: "_id", // Field in the Product collection
+                    as: "productDetails" // Name of the new array field for joined data
+                }
+            },
+            {
+                $unwind: "$productDetails" // Optional: Flatten the productDetails array
             }
-        ])
+        ]);
 
 
         let itemsPerPage = 5

@@ -85,6 +85,7 @@
                             </select>
                         </div>
                         
+
                         <div class="mb-4">
                             <label class="form-label">Subcategory</label>
                             <select class="form-select" name="subcategory" id="subcategorySelect">
@@ -292,6 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             // Show loading state
+            console.log("Haaaa")
             subcategorySelect.innerHTML = '<option value="">Loading...</option>';
             
             const response = await fetch('/admin/get-subcategories', {

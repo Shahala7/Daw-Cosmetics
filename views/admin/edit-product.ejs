@@ -93,7 +93,7 @@
                             <label class="form-label">Subcategory</label>
                             <select class="form-select" name="subcategory" id="subcategorySelect">
                                 <% subcategories.forEach(subcategory => { %>
-                                    <option value="<%= subcategory._id %>"
+                                    <option value="<%= subcategory.subcategoryName %>"
                                         <%= (subcategory.subcategoryName && product.subcategory && subcategory.subcategoryName.toString() === product.subcategory.toString()) ? 'selected' : '' %>>
                                         <%= subcategory.subcategoryName %>
                                     </option>
@@ -317,55 +317,69 @@ document.addEventListener('DOMContentLoaded', function() {
     const categorySelect = document.getElementById('categorySelect');
     const subcategorySelect = document.getElementById('subcategorySelect');
 
-    categorySelect.addEventListener('change', async function() {
-        const selectedCategoryId = this.value;
+    // Function to update subcategories
+    console.log("aaaaa")
+    async function updateSubcategories(categoryName) {
+        if (!categoryName) {
+            subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+            return;
+        }
         
-        // Reset subcategory select
-        subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
-        
-        if (!selectedCategoryId) return;
-
         try {
-            // Show loading state
-            subcategorySelect.innerHTML = '<option value="">Loading...</option>';
-            
+            console.log("haaa")
             const response = await fetch('/admin/get-subcategories', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ categoryId: selectedCategoryId })
+                body: JSON.stringify({ categoryName: categoryName })
             });
-
+            
             if (!response.ok) {
                 throw new Error('Failed to fetch subcategories');
             }
-
+            
             const subcategories = await response.json();
+            
+            // Store the currently selected subcategory value
+            const currentSubcategory = subcategorySelect.value;
             
             // Reset select with default option
             subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
-
-            // Check if we got any subcategories
+            
             if (!subcategories || subcategories.length === 0) {
                 subcategorySelect.innerHTML = '<option value="">No subcategories available</option>';
                 return;
             }
-
-            // Add subcategories to select
+            
+            // Add filtered subcategories to select
             subcategories.forEach(subcategory => {
                 const option = document.createElement('option');
-                option.value = subcategory._id;
+                option.value = subcategory.subcategoryName;
                 option.textContent = subcategory.subcategoryName;
+                // Preserve selection if subcategory matches
+                if (subcategory.subcategoryName === currentSubcategory) {
+                    option.selected = true;
+                }
                 subcategorySelect.appendChild(option);
             });
-
         } catch (error) {
             console.error('Error:', error);
             subcategorySelect.innerHTML = '<option value="">Error loading subcategories</option>';
         }
+    }
+
+    // Initial load of subcategories based on the pre-selected category
+    if (categorySelect.value) {
+        updateSubcategories(categorySelect.value);
+    }
+
+    // Event listener for category changes
+    categorySelect.addEventListener('change', function() {
+        updateSubcategories(this.value);
     });
 });
+
 function deleteImage(productId, filename) {
     fetch('/admin/deleteImage', {
         method: 'POST',

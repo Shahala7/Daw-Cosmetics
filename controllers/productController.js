@@ -37,17 +37,16 @@ const subCat = async (req, res) => {
         const { categoryId } = req.body;
         
         // Validate categoryId
-        if (!Mongoose.Types.ObjectId.isValid(categoryId)) {
-            return res.status(400).json({ error: 'Invalid category ID' });
-        }
+        // if (!Mongoose.Types.ObjectId.isValid(categoryId)) {
+        //     return res.status(400).json({ error: 'Invalid category ID' });
+        // }
 
         // Fetch the category with its subcategories
-        const category = await Category.findById(categoryId).populate('subcategories');
-        
+        const category = await Category.findOne({name:categoryId}).populate('subcategories');
         if (!category) {
             return res.status(404).json({ error: 'Category not found' });
         }
-
+        console.log(category)
         // Filter subcategories
         const filteredSubcategories = category.subcategories
             .filter(subcat => subcat.isListed)
