@@ -190,11 +190,7 @@ const addProducts = async (req, res) => {
 
         await newProduct.save();
 
-        return res.status(201).json({
-            success: true,
-            message: "Product added successfully",
-            product: newProduct
-        });
+        return res.redirect('/admin/products')
     } catch (error) {
         console.error("Error adding product:", error);
         return res.status(500).json({
@@ -204,7 +200,6 @@ const addProducts = async (req, res) => {
         });
     }
 };
-
 
 const getEditProduct = async (req, res) => {
     try {

@@ -227,7 +227,6 @@
             displayErrorMessage("images-error", "At least one image is required");
             isValid = false;
         }
-
         if (!isValid) {
             return false;
         }
@@ -245,21 +244,17 @@
                 });
             });
         }
-
         // Manually submit the form with images
         const xhr = new XMLHttpRequest();
         xhr.open("POST", "/admin/addProducts", true);
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                // Handle successful submission
-                window.location.href = '/admin/products';
-            } else {
-                // Handle errors
-                alert("An error occurred while submitting the form.");
-            }
-        };
+        // xhr.onload = function () {
+        //     if (xhr.status === 200) {
+        //         window.location.href = '/admin/products';
+        //     } else {
+        //         alert("An error occurred while submitting the form.");
+        //     }
+        // };
         xhr.send(formData);
-
         return false; // Prevent default form submission
     }
 

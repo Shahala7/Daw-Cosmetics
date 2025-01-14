@@ -105,8 +105,6 @@ const signupUser = async (req, res) => {
             debug: true,   // Show detailed logs
         });
         
-
-
         const info = await transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: email,
@@ -234,17 +232,6 @@ const getHomePage = async (req, res) => {
         console.log(user,'authuser');
         
         const categories = await Category.find({}).populate('subcategories');
-        // const transformedCategories = categories.map(category => ({
-        //     name: category.name,
-        //     // url: `/collections/${category.name.toLowerCase().replace(/\s+/g, '-')}`, // Example: /collections/hair-shampoo
-        //     image: category.imageUrl || '/path/to/default/image.png', // Replace with the actual field that stores image URL
-        //     subcategories: category.subcategories.map(subcategory => ({
-        //         name: subcategory.name,
-        //         // url: `/collections/${category.name.toLowerCase().replace(/\s+/g, '-')}/${subcategory.name.toLowerCase().replace(/\s+/g, '-')}`,
-        //         image: subcategory.imageUrl || '/path/to/default/subcategory/image.png' // Replace with actual field for subcategory image
-        //     }))
-        // }));
-        // console.log(findBanner);
         const userData = await User.findOne({})
         const brandData = await Brand.find({ isBlocked: false })
         const productData = await Product.find({ isBlocked: false }).sort({ id: -1 }).limit(4)
@@ -279,8 +266,7 @@ const getLoginPage = async (req, res) => {
         }
     } catch (error) {
         console.log(error.message);
-    }
-    
+    }   
 }
 
 
@@ -350,8 +336,6 @@ const getLogoutUser = async (req, res) => {
         console.log(error.message);
     }
 }
-
-
 
 const getProductDetailsPage = async (req, res) => {
     try {
@@ -440,8 +424,6 @@ const searchProducts = async (req, res) => {
     }
 }
 
-
-
 const filterProduct = async (req, res) => {
     try {
         const user = req.session.user;
@@ -479,9 +461,6 @@ console.log(findCategory,"findcategory");
         let endIndex = startIndex + itemsPerPage;
         let totalPages = Math.ceil(findProducts.length / 6);
         const currentProduct = findProducts.slice(startIndex, endIndex);
-
-console.log(currentProduct,'currentProduct');
-
 
         res.render("shop", {
             user: user,

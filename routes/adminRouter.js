@@ -20,8 +20,6 @@ Router.get("/logout", isAdmin, adminController.getLogout);
 Router.get("/", isAdmin, adminController.adminDashboard);
 
 
-
-
 // Category Management
 Router.get("/category", isAdmin, categoryController.getCategoryInfo);
 Router.get("/addcategory", isAdmin, categoryController.getaddCategory);

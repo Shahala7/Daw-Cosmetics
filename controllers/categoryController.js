@@ -149,11 +149,7 @@ const addCategory = async (req, res) => {
         await newCategory.save();
         console.log("New Category created:", newCategory);
 
-        res.status(201).json({
-            success: true,
-            message: "Category created successfully",
-            category: newCategory
-        });
+        res.redirect("/admin/category");
 
     } catch (error) {
         console.error("Error in addCategory:", error);

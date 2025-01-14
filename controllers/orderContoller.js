@@ -108,7 +108,7 @@ const orderPlaced = async (req, res) => {
       }
 
       
-      const grandTotal = req.session.grandTotal;
+      const grandTotal = totalPrice;
 
       // Find address
       const addressDocument = await Address.findOne({ 
