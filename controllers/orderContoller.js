@@ -651,15 +651,21 @@ const cancelOrder = async (req, res) => {
         ).then((data) => console.log(data))
 
         const findOrder = await Order.findOne({ _id: orderId })
+console.log(findOrder.totalPrice,"findordr total price");
+console.log(findOrder._id,"findordr -id");
+console.log(findOrder.id,"findordr id");
+
 
         if (findOrder.payment === "wallet" || findOrder.payment === "online") {
             findUser.wallet += findOrder.totalPrice;
 
             const newHistory = {
+                orderId:findOrder._id,
                 amount: findOrder.totalPrice,
                 status: "credit",
                 date: Date.now()
             }
+            
             findUser.history.push(newHistory)
             await findUser.save();
         }
