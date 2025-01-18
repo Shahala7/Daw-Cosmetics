@@ -346,7 +346,7 @@ function handleCancelOrder(orderId) {
                 error: function(xhr, status, error) {
                     Swal.fire({
                         title: 'Error',
-                        text: 'Failed to cancel order. Please try again.',
+                        text: `Failed to cancel order. Please try again.${error.message}`,
                         icon: 'error'
                     });
                 }
