@@ -659,7 +659,7 @@ const cancelOrder = async (req, res) => {
             console.log(findOrder._id,"findordr -id");
             console.log(findOrder.id,"findordr id");
             const newHistory = {
-                orderId:findOrder.id,
+                orderId:findOrder._id,
                 amount: findOrder.totalPrice,
                 status: "credit",
                 date: Date.now()
