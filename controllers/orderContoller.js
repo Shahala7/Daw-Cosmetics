@@ -635,7 +635,7 @@ const cancelOrderItem = async (req, res) => {
 };
 const cancelOrder = async (req, res) => {
     try {
-        console.log("im here");
+        console.log("im here in cancelOrder...");
         const userId = req.session.user
         const findUser = await User.findOne({ _id: userId })
 
@@ -643,8 +643,9 @@ const cancelOrder = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const orderId = req.query.orderId
-        // console.log(orderId);
+        // const orderId = req.query.orderId
+        const { orderId } = req.body;
+         console.log(orderId);
 
         await Order.updateOne({ _id: orderId },
             { status: "Canceled" }

@@ -308,7 +308,7 @@
             console.error("Order ID is missing.");
             return;
         }
-
+        const BASE_URL  = ''
         console.log(orderId, "hiiiiiiiiiiiiiiiiiiiii");
 
         // SweetAlert confirmation
@@ -322,10 +322,39 @@
             confirmButtonText: "Yes, cancel it!",
             cancelButtonText: "No, keep it"
         }).then((result) => {
-            if (result.isConfirmed) {
+    
+        if (result.isConfirmed)
+         {
                 // Redirect to the cancel order endpoint
-                window.location.href = `http://dawcosmetics.shop/cancelOrder?orderId=${orderId}`;
-            } else {
+                //window.location.href = `${BASE_URL}/cancelOrder?orderId=${orderId}`;
+
+
+                $.ajax({
+        url: '/cancelOrder',
+        method: 'POST',
+        data: {
+            orderId
+        },
+        success: function (response) {
+            console.log(response,"cancel order success");
+            Swal.fire({
+                title: 'Cancel Order Success',
+                text: 'Successfully cancelled!',
+                icon: 'success'
+            });
+        },
+        error: function (xhr, status, error) {
+            console.error('Order Cancel error:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Failed to cancel order. Please try again.',
+                icon: 'error'
+            });
+        }
+    });
+           } 
+           
+           else {
                 console.log("Cancellation aborted.");
             }
         });
