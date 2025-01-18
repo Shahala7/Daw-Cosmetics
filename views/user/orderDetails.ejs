@@ -268,7 +268,7 @@
         function printInvoice(event){
             window.print()
         }
-       document.getElementById("print-button").addEventListener('click',printInvoice);
+       document.getElementById("print-button")?.addEventListener('click',printInvoice);
     </script>
 
     <!-- Bootstrap Modal -->
@@ -303,62 +303,57 @@
 
     <script>
 
-    function handleCancelOrder(orderId) {
-        if (!orderId) {
-            console.error("Order ID is missing.");
-            return;
-        }
-        const BASE_URL  = ''
-        console.log(orderId, "hiiiiiiiiiiiiiiiiiiiii");
+function handleCancelOrder(orderId) {
+    if (!orderId) {
+        console.error("Order ID is missing.");
+        return;
+    }
 
-        // SweetAlert confirmation
-        Swal.fire({
-            title: "Are you sure?",
-            text: "Do you really want to cancel this order?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Yes, cancel it!",
-            cancelButtonText: "No, keep it"
-        }).then((result) => {
-    
-        if (result.isConfirmed)
-         {
-                // Redirect to the cancel order endpoint
-                //window.location.href = `${BASE_URL}/cancelOrder?orderId=${orderId}`;
-
-
-                $.ajax({
-        url: '/cancelOrder',
-        method: 'POST',
-        data: {
-            orderId
-        },
-        success: function (response) {
-            console.log(response,"cancel order success");
-            Swal.fire({
-                title: 'Cancel Order Success',
-                text: 'Successfully cancelled!',
-                icon: 'success'
-            });
-        },
-        error: function (xhr, status, error) {
-            console.error('Order Cancel error:', error);
-            Swal.fire({
-                title: 'Error',
-                text: 'Failed to cancel order. Please try again.',
-                icon: 'error'
+    Swal.fire({
+        title: "Are you sure?",
+        text: "Do you really want to cancel this order?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, cancel it!",
+        cancelButtonText: "No, keep it"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '/cancelOrder',
+                method: 'POST',
+                data: {
+                    orderId: orderId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Order Cancelled',
+                            text: 'Your order has been cancelled successfully!',
+                            icon: 'success'
+                        }).then(() => {
+                            window.location.reload(); // Reload the page to show updated status
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: response.message || 'Failed to cancel order',
+                            icon: 'error'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Failed to cancel order. Please try again.',
+                        icon: 'error'
+                    });
+                }
             });
         }
     });
-           } 
-           
-           else {
-                console.log("Cancellation aborted.");
-            }
-        });
-    }
+}
 
         function performAction() {
             // This function can be used for additional actions when the "Save" button is clicked
@@ -375,12 +370,7 @@
     // Parse product ID and address back to their original types
     let productId = prodId
     console.log( productId,"productid");
-    
-    // let productIds=productId.map((item)=>{
-    //     return item._id
-    // })
-
-    const parsedAddress = address ? JSON.parse(address) : null;
+        const parsedAddress = address ? JSON.parse(address) : null;
 
     console.log("Product ID:", productId);
     console.log("Address:", parsedAddress);

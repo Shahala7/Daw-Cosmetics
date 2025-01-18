@@ -8,6 +8,8 @@ const bcrypt = require("bcryptjs")
 
 const getUserProfile = async (req, res) => {
     try {
+        console.log("get user profile");
+        
         console.log(req.session.user);
         const userId = req.session.user
         // console.log(userId);
