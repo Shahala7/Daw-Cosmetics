@@ -306,6 +306,7 @@ const processPayment = async (
               
               orderDone = await newOrder.save();
                 await Order.findOneAndUpdate({_id:orderDone._id},{status: "Confirmed"})
+                await Cart.deleteOne({ userId: userId });
               return res.json({ 
                   payment: true, 
                   method: "wallet", 
@@ -364,166 +365,15 @@ const verify = (req, res) => {
       res.json({ status: false });
   }
 };
-const logPaymentFailure = async (req, res) => {
-  try {
-      const { description, user_id, product_id,payment_id,status } = req.body;
 
-      // console.log(req.body, ">>>>>>>>1111111")
 
-      // Ensure product_id is defined and is an array
-      if (!product_id || !Array.isArray(product_id)) {
-          return res.status(400).json({ error: "Invalid product IDs" });
-      }
-
-      // Remove products from user's cart
-      const user = await User.findById(user_id);
-      if (!user) {
-          return res.status(404).json({ error: "User not found" });
-      }
-
-    if(payment_id && !status){
-      product_id.forEach(async (id) => {
-          // Filter out the product with the given ID from the cart
-          user.cart = user.cart.filter(item => item.productId.toString() !== id.toString());
-      });
-    }
-
-      await user.save();
-
-      // // Optionally, log the failure details for further analysis
-      // console.log('Payment failure description:', description);
-      // console.log('Product IDs removed from cart:', product_id);
-
-      res.status(200).send({ status: 'logged' });
-  } catch (error) {
-      console.error('Error logging payment failure:', error);
-      res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-
-// const savePendingOrder = async (req, res) => {
-//   const { order_id, user_id, product_id, total_price, address_id, payment_id } = req.body; // Extract payment_id from req.body
-//  console.log(product_id,"prodct1235");
- 
-//   // console.log( payment_id,">>>>>>>>>2");
-//   try {
-//       // Fetch user and address details
-//       const user = await User.findById(user_id);
-//       const couponDiscount = req.session.coupon || 0;
-//       const payment = req.session.payment;
-//       if (!user) {
-//           return res.status(404).send({ status: 'User not found' });
-//       }
-
-//       const address = await Address.findOne({ userId: user_id });
-//       if (!address) {
-//           return res.status(404).send({ status: 'Address not found' });
-//       }
-
-//       const findAddress = address.address.find(item => item._id.toString() === address_id);
-//       if (!findAddress) {
-//           return res.status(404).send({ status: 'Address not found' });
-//       }
-
-//       // Fetch product details
-//       // const products = await Product.find({ _id: { $in: product_id } });
-
-//       // const cartItemQuantities = user.cart.map((item) => ({
-//       //     productId: item.productId,
-//       //     quantity: item.quantity
-//       // }));
-      
-//       const cartDocument = await Cart.findOne({ userId:user_id});
-
-//       if (!cartDocument || !cartDocument.items || cartDocument.items.length === 0) {
-//           return res.status(404).json({ error: "Cart is empty" });
-//       }
-
-//       // Prepare product IDs from cart items
-//       const productIds = cartDocument.items.map(item => item.productId);
-      
-//       // Find all products in the cart
-//       const findProducts = await Product.find({ _id: { $in: productIds } });
-
-//       // Map cart items to ordered products
-//       const orderedProducts = cartDocument.items.map(cartItem => {
-//           const product = findProducts.find(p => p._id.toString() === cartItem.productId.toString());
-          
-//           return {
-//               _id: product._id,
-//               price: product.salePrice,
-//               name: product.productName,
-//               image: product.productImage[0],
-//               quantity: cartItem.quantity
-//           };
-//       });
-// console.log(orderedProducts,"orderedProducts");
-
-     
-//     //   const findProducts = await Product.find({ _id: { $in: product_id } });
-//     //  console.log(findProducts ,"fp2334");
-//     //  const cartDocument = await Cart.findOne({ userId: userId });
-//     //   // Format product details
-//     //   const productDetails =findProducts.map(item => ({
-//     //       _id: item._id,
-//     //       price: item.salePrice,
-//     //       regularPrice: item.regularPrice,
-//     //       name: item.productName,
-//     //       productOffer: item.regularPrice - item.salePrice,
-//     //       image: item.productImage[0],
-//     //       quantity: cartDocument.quantity
-//     //   }));
-
-//       // Create a new pending order
-//       const pendingOrder = new Order({
-//           product: orderedProducts,
-//           totalPrice: total_price,
-//           address: findAddress,
-//           userId: user_id,
-//           couponDiscount,
-//           payment: payment,
-//          // Store the payment ID along with the order
-//           status: 'Pending'
-//       });
-
-//       // Save the pending order
-//       await pendingOrder.save();
-//       for(let i=0;i<500;i++){
-//         if(i===450){
-//           console.log(pendingOrder,'pdeng');
-          
-//           console.log("comleteddd");
-          
-//         }
-//       }
-//       res.status(200).send({ status: 'Pending order saved' });
-//   } catch (error) {
-//       console.error('Error saving pending order:', error);
-//       res.status(500).send({ status: 'error', error: error.message });
-//   }
-// };
 const savePendingOrder = async (req, res) => {
-  const { order_id, user_id, product_id, total_price, address_id, payment_id } = req.body;
 
   try {
-let newOrder=req.session.newOrder
-
-console.log(newOrder,"nodr");
-
-    const pendingOrder=new Order({
-      product:newOrder.product,
-      totalPrice:newOrder.totalPrice ,
-      address: newOrder.address,
-      payment: newOrder.payment,
-      userId: newOrder.userId,
-      status: "Pending",
-      createdOn: Date.now()
-    })
-     
-      await pendingOrder.save();
-
-      // Simulated delay for testing (optional, remove if unnecessary)
-
+    let newOrder=req.session.newOrder
+     if(newOrder.status === "Payment Pending"){
+        await Order.findOneAndUpdate({_id : newOrder._id},{status : "Pending"})
+     }
       res.status(200).send({ status: 'Pending order saved' });
   } catch (error) {
       console.error('Error saving pending order:', error);
@@ -543,10 +393,6 @@ const getOrderDetailsPage = async (req, res) => {
       })
       console.log(productId,"prodct344");
       console.log(findOrder.product,"fndordr")
-      
-    //   console.log(findOrder, "fndordr");
-    //   const address=findOrder.address[0]
-    //   console.log(address,"adddres");
       
       res.render("orderDetails", { orders: findOrder, user: findUser, orderId ,productId:productId})
   } catch (error) {
@@ -635,74 +481,62 @@ const cancelOrderItem = async (req, res) => {
 };
 const cancelOrder = async (req, res) => {
     try {
-        const userId = req.session.user;
-        const findUser = await User.findOne({ _id: userId });
+        console.log("im here");
+        const userId = req.session.user
+        const findUser = await User.findOne({ _id: userId })
 
         if (!findUser) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'User not found' 
-            });
+            return res.status(404).json({ message: 'User not found' });
         }
 
-        const { orderId } = req.body;
+        const orderId = req.query.orderId
+        // console.log(orderId);
 
-        if (!orderId) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Order ID is required' 
-            });
-        }
-
-        await Order.updateOne(
-            { _id: orderId },
+        await Order.updateOne({ _id: orderId },
             { status: "Canceled" }
-        );
+        ).then((data) => console.log(data))
 
-        const findOrder = await Order.findOne({ _id: orderId });
+        const findOrder = await Order.findOne({ _id: orderId })
 
-        // Handle refund to wallet if payment was online or wallet
         if (findOrder.payment === "wallet" || findOrder.payment === "online") {
             findUser.wallet += findOrder.totalPrice;
-            
+
+            console.log(findOrder.totalPrice,"findordr total pyrice");
+            console.log(findOrder._id,"findordr -id");
+            console.log(findOrder.id,"findordr id");
             const newHistory = {
-                orderId: findOrder._id,
+                orderId:findOrder._id,
                 amount: findOrder.totalPrice,
                 status: "credit",
                 date: Date.now()
-            };
+            }
             
-            findUser.history.push(newHistory);
+            findUser.history.push(newHistory)
             await findUser.save();
         }
 
-        // Update product quantities
+        // console.log(findOrder);
+
         for (const productData of findOrder.product) {
             const productId = productData.ProductId;
             const quantity = productData.quantity;
-            
+
             const product = await Product.findById(productId);
+
+            console.log(product, "=>>>>>>>>>");
+
             if (product) {
                 product.quantity += quantity;
                 await product.save();
             }
         }
 
-        res.json({ 
-            success: true, 
-            message: 'Order cancelled successfully' 
-        });
-
-        // res.redirect("/profile")
+        res.redirect('/profile');
 
     } catch (error) {
-        console.error('Cancel order error:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Internal server error' 
-        });
+        console.log(error.message);
     }
-};
+}
 
 
 const returnOrder = async (req, res) => {
@@ -913,7 +747,6 @@ module.exports = {
     getInvoice,
     processReturnRequest ,
     verify,
-    logPaymentFailure,
     savePendingOrder,
     retryPayment
         
