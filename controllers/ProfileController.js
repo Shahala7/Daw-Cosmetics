@@ -8,11 +8,8 @@ const bcrypt = require("bcryptjs")
 
 const getUserProfile = async (req, res) => {
     try {
-        console.log("get user profile");
         
-        console.log(req.session.user);
         const userId = req.session.user
-        // console.log(userId);
         const userData = await User.findById({ _id: userId });
         // console.log(userData);
         const addressData = await Address.findOne({ userId: userId })
@@ -288,17 +285,6 @@ function generateOtp() {
     }
     return otp
 }
-
-
-// const getForgotPassOtpPage = async (req, res)=>{
-//     try {
-//         res.render("forgotPass-otp")
-//     } catch (error) {
-//         console.log(error.message);
-//     }
-// }
-
-
 
 const forgotEmailValid = async (req, res) => {
     try {

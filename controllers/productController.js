@@ -35,11 +35,6 @@ const getProductAddPage = async (req, res) => {
 const subCat = async (req, res) => {
     try {
         const { categoryId } = req.body;
-        
-        // Validate categoryId
-        // if (!Mongoose.Types.ObjectId.isValid(categoryId)) {
-        //     return res.status(400).json({ error: 'Invalid category ID' });
-        // }
 
         // Fetch the category with its subcategories
         const category = await Category.findOne({name:categoryId}).populate('subcategories');

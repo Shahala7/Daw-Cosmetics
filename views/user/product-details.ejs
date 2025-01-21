@@ -69,10 +69,6 @@
                                 <div class="bt-1 border-color-1 mt-30 mb-30"></div>
                                 <div class="d-flex justify-content gap-3">
                                     <button onclick="handleAddToCart(this, '<%= data._id %>')" class="btn btn-success">Add to Cart</button>
-                                    
-                                    <a href="/checkout?id=<%= data.id %>&isSingle=true">
-                                        <button class="btn btn-primary" type="submit">Buy Now</button>
-                                    </a>
                                 </div>
                                 <ul class="product-meta font-xs color-grey mt-50">
                                     <li class="mb-5">ID: <%= data.id %></li>
@@ -91,10 +87,6 @@
                     </div>
                     
                     <!-- Related Products Section -->
-                    <div class="related-products-section">
-                        <h3 class="section-title">Related Products</h3>
-                        <div class="row" id="related-products-container"></div>
-                    </div>
                     
                 </div>
             </div>

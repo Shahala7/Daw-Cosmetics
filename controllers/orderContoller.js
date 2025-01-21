@@ -481,101 +481,63 @@ const cancelOrderItem = async (req, res) => {
 };
 const cancelOrder = async (req, res) => {
     try {
-        const userId = req.session.user;
-        const findUser = await User.findOne({ _id: userId });
-        
+        console.log("im here");
+        const userId = req.session.user
+        const findUser = await User.findOne({ _id: userId })
+
         if (!findUser) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'User not found' 
-            });
+            return res.status(404).json({ message: 'User not found' });
         }
 
-        const { orderId } = req.body;
-        
-        if (!orderId) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Order ID is required' 
-            });
-        }
+        const orderId = req.query.orderId
+        // console.log(orderId);
 
-        // Find order before updating status
-        const findOrder = await Order.findOne({ _id: orderId });
-        
-        if (!findOrder) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Order not found' 
-            });
-        }
-
-        // Check if order is already cancelled
-        if (findOrder.status === "Canceled") {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Order is already cancelled' 
-            });
-        }
-
-        // Update order status to Canceled
-        await Order.updateOne(
-            { _id: orderId },
+        await Order.updateOne({ _id: orderId },
             { status: "Canceled" }
-        );
+        ).then((data) => console.log(data))
 
-        // Handle refund to wallet if payment was online or wallet
+        const findOrder = await Order.findOne({ _id: orderId })
+
         if (findOrder.payment === "wallet" || findOrder.payment === "online") {
-            // Add refund amount to user's wallet
             findUser.wallet += findOrder.totalPrice;
-            
-            // Create wallet history entry
-            const walletHistory = {
-                orderId: findOrder._id,
+
+            console.log(findOrder.totalPrice,"findordr total pyrice");
+            console.log(findOrder._id,"findordr -id");
+            console.log(findOrder.id,"findordr id");
+            const newHistory = {
+                orderId:findOrder._id,
                 amount: findOrder.totalPrice,
                 status: "credit",
-                date: Date.now(),
-                description: `Refund for cancelled order #${findOrder._id}`
-            };
+                date: Date.now()
+            }
             
-            // Add to wallet history
-            findUser.history.push(walletHistory);
+            findUser.history.push(newHistory)
             await findUser.save();
         }
 
-        // Restore product quantities
+        // console.log(findOrder);
+
         for (const productData of findOrder.product) {
-            const productId = productData._id;  // Assuming this is how your product ID is stored
+            const productId = productData.ProductId;
             const quantity = productData.quantity;
-            
+
             const product = await Product.findById(productId);
+
+            console.log(product, "=>>>>>>>>>");
+
             if (product) {
-                // Increase product quantity
                 product.quantity += quantity;
                 await product.save();
             }
         }
 
-        let message = 'Order cancelled successfully';
-        if (findOrder.payment === "wallet" || findOrder.payment === "online") {
-            message += `. ₹${findOrder.totalPrice} has been refunded to your wallet.`;
-        }
-
-        res.json({ 
-            success: true, 
-            message: message,
-            refundAmount: findOrder.totalPrice,
-            newWalletBalance: findUser.wallet
-        });
+        res.redirect('/profile');
 
     } catch (error) {
-        console.error('Cancel order error:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Internal server error' 
-        });
+        console.log(error.message);
     }
-};
+}
+
 
 const returnOrder = async (req, res) => {
   try {
@@ -676,19 +638,14 @@ const processReturnRequest = async (req, res) => {
 
 const changeOrderStatus = async (req, res) => {
     try {
-        console.log(req.query);
-
 
         const orderId = req.query.orderId
-        console.log(orderId);
+        
 
         await Order.updateOne({ _id: orderId },
             { status: req.query.status }
         ).then((data) => console.log(data))
 
-        // const findOrder = await Order.findOne({ _id: orderId })
-
-        // console.log(findOrder,"order......................");
 
         res.redirect('/admin/orderList');
 
@@ -700,9 +657,9 @@ const changeOrderStatus = async (req, res) => {
 const getOrderDetailsPageAdmin = async (req, res) => {
     try {
         const orderId = req.query.id
-        // console.log(orderId);
+    
 const findOrder = await Order.findOne({ _id: orderId }).populate("product._id")
-        // console.log(findOrder);
+
 
         res.render("order-details-admin", { orders: findOrder, orderId })
     } catch (error) {
@@ -712,7 +669,6 @@ const findOrder = await Order.findOne({ _id: orderId }).populate("product._id")
 
 const getInvoice = async (req, res) => {
     try {
-        console.log("helloooo");
         await invoice.invoice(req, res);
     } catch (error) {
         console.log(error.message);
@@ -729,10 +685,6 @@ const retryPayment = async (req, res) => {
     try {
         const userId = req.session.user
         const { orderId } = req.body;
-        // Fetch order details from the database
-        // console.log(req.body,"reqq");
-        console.log(orderId,"orderrr");
-        console.log(userId,"uuser");
         const user = await User.findById(userId);
         const order = await Order.findById(orderId)      
         
@@ -752,8 +704,6 @@ const retryPayment = async (req, res) => {
 
         // Save the updated order back to the database
         const updatedOrder = await order.save();
-
-        console.log("Order updated successfully: ", updatedOrder);
     
         res.json({
             method: 'online',
