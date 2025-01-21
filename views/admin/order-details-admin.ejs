@@ -246,11 +246,11 @@ function handleDropdownChange(selectElement) {
     var selectedValue = selectElement.value;
     console.log(selectedValue);
     if(selectedValue == "cancel"){
-        window.location.href = `http://localhost:5000/admin/changeStatus?orderId=${orderId.value}&status=${selectedValue}`;
+        window.location.href = `BASE_URL/admin/changeStatus?orderId=${orderId.value}&status=${selectedValue}`;
     }else if(selectedValue == "Shipped"){
-        window.location.href = `http://localhost:5000/admin/changeStatus?orderId=${orderId.value}&status=${selectedValue}`;
+        window.location.href = `BASE_URL/admin/changeStatus?orderId=${orderId.value}&status=${selectedValue}`;
     }else if(selectedValue == "Delivered"){
-        window.location.href = `http://localhost:5000/admin/changeStatus?orderId=${orderId.value}&status=${selectedValue}`;
+        window.location.href = `BASE_URL/admin/changeStatus?orderId=${orderId.value}&status=${selectedValue}`;
     }else{
         alert("error")
     }
