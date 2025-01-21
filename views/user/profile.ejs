@@ -250,7 +250,7 @@
 
                                             <div class="row">
                                                 <div class="col-lg-8 mx-auto text-center mt-50">
-                                                    <form onsubmit="verifyReferalCode(event)" method="post" action="">
+                                                    <form onsubmit="verifyReferalCode(event)" method="post" action="/profile/verifyReferalCode">
                                                         <div class="form-group">
                                                             <label for="walletAmount" class="h4">Your referal
                                                                 code</label>
@@ -409,5 +409,65 @@
             </div>
         </div>
     </section>
+    <script>
+// Frontend JavaScript function
+function verifyReferalCode(event) {
+    event.preventDefault();
+    
+    const referalCode = document.getElementById('referalCode').value;
+    const walletDisplay = document.getElementById('walletAmount'); // Add this ID to your wallet display element
+    
+    fetch('/profile/verifyReferalCode', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ referalCode: referalCode })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Show message
+        if (data.success) {
+            // Update wallet amount display
+            if (walletDisplay) {
+                walletDisplay.textContent = `₹${data.updatedWallet}`;
+            }
+            // Clear the input field
+            document.getElementById('referalCode').value = '';
+            // Show success message
+            showToast(data.message, 'success');
+        } else {
+            showToast(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Something went wrong. Please try again.', 'error');
+    });
+}
+
+// Add this function for better user feedback
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        background: ${type === 'success' ? '#4CAF50' : '#f44336'};
+        color: white;
+        border-radius: 4px;
+        z-index: 1000;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+    </script>
 
  <%- include("../partials/footer") %>

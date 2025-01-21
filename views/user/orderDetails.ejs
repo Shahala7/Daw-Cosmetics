@@ -301,65 +301,6 @@
         }
     </style>
 
-    <script>
-
-function handleCancelOrder(orderId) {
-    if (!orderId) {
-        console.error("Order ID is missing.");
-        return;
-    }
-
-    Swal.fire({
-        title: "Are you sure?",
-        text: "Do you really want to cancel this order?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "Yes, cancel it!",
-        cancelButtonText: "No, keep it"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: '/cancelOrder',
-                method: 'POST',
-                data: {
-                    orderId: orderId
-                },
-                success: function(response) {
-                    if (response.success) {
-                        Swal.fire({
-                            title: 'Order Cancelled',
-                            text: 'Your order has been cancelled successfully!',
-                            icon: 'success'
-                        }).then(() => {
-                            window.location.reload(); // Reload the page to show updated status
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Error',
-                            text: response.message || 'Failed to cancel order',
-                            icon: 'error'
-                        });
-                    }
-                },
-                error: function(xhr, status, error) {
-                    Swal.fire({
-                        title: 'Error',
-                        text: `Failed to cancel order. Please try again.${error.message}`,
-                        icon: 'error'
-                    });
-                }
-            });
-        }
-    });
-}
-
-        function performAction() {
-            // This function can be used for additional actions when the "Save" button is clicked
-            // You can add more logic here if needed
-        }
-    </script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <!-- JavaScript for handling coupon and order placement -->
     <script>
@@ -627,6 +568,58 @@ let datas=  {
             }
         });
     }
-       
+      
+    function handleCancelOrder(orderId) {
+    if (!orderId) {
+        console.error("Order ID is missing.");
+        return;
+    }
+
+    Swal.fire({
+        title: "Are you sure?",
+        text: "Do you really want to cancel this order?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, cancel it!",
+        cancelButtonText: "No, keep it"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '/cancelOrder',
+                method: 'POST',
+                data: {
+                    orderId: orderId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Order Cancelled',
+                            text: response.message,
+                            icon: 'success'
+                        }).then(() => {
+                            location.reload(); // Reload to show updated status
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: response.message,
+                            icon: 'error'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Failed to cancel order. Please try again.',
+                        icon: 'error'
+                    });
+                }
+            });
+        }
+    });
+}
+
     </script>
     <%- include("../partials/footer") %>

@@ -239,7 +239,7 @@
             const croppedCanvas = cropper.getCroppedCanvas();
             await new Promise((resolve) => {
                 croppedCanvas.toBlob((blob) => {
-                    formData.append("images", blob, `image_${i}.png`);
+                    formData.append("images", blob, `image_${i}`);
                     resolve();
                 });
             });

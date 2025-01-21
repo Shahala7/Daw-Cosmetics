@@ -51,13 +51,14 @@ Router.post("/updateAddress", isLogged, userProfileController.postEditAddress)
 Router.get("/deleteAddress", isLogged, userProfileController.getDeleteAddress)
 Router.post("/editUserDetails", isLogged, userProfileController.editUserDetails)
 Router.post("/resetPassword", isLogged, userProfileController.resetPassword)
-Router.post("/verifyReferalCode", isLogged, userProfileController.verifyReferalCode)
+Router.post("/profile/verifyReferalCode", isLogged, userProfileController.verifyReferalCode)
 Router.get("/productDetails",isLogged, userController.getProductDetailsPage)
 Router.get("/shop", isLogged,userController.getShopPage)
 Router.get("/search",isLogged, userController.searchProducts)
 Router.get("/filter",isLogged, userController.filterProduct)
 Router.get("/filterPrice",isLogged, userController.filterByPrice)
 Router.post("/api/products/sort",isLogged, userController.getSortProducts)
+
 // Cart
 
 Router.get("/cart", isLogged, cartController.getCartPage);

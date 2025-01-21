@@ -481,63 +481,101 @@ const cancelOrderItem = async (req, res) => {
 };
 const cancelOrder = async (req, res) => {
     try {
-        console.log("im here");
-        const userId = req.session.user
-        const findUser = await User.findOne({ _id: userId })
-
+        const userId = req.session.user;
+        const findUser = await User.findOne({ _id: userId });
+        
         if (!findUser) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ 
+                success: false, 
+                message: 'User not found' 
+            });
         }
 
-        const orderId = req.query.orderId
-        // console.log(orderId);
+        const { orderId } = req.body;
+        
+        if (!orderId) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Order ID is required' 
+            });
+        }
 
-        await Order.updateOne({ _id: orderId },
+        // Find order before updating status
+        const findOrder = await Order.findOne({ _id: orderId });
+        
+        if (!findOrder) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Order not found' 
+            });
+        }
+
+        // Check if order is already cancelled
+        if (findOrder.status === "Canceled") {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Order is already cancelled' 
+            });
+        }
+
+        // Update order status to Canceled
+        await Order.updateOne(
+            { _id: orderId },
             { status: "Canceled" }
-        ).then((data) => console.log(data))
+        );
 
-        const findOrder = await Order.findOne({ _id: orderId })
-
+        // Handle refund to wallet if payment was online or wallet
         if (findOrder.payment === "wallet" || findOrder.payment === "online") {
+            // Add refund amount to user's wallet
             findUser.wallet += findOrder.totalPrice;
-
-            console.log(findOrder.totalPrice,"findordr total pyrice");
-            console.log(findOrder._id,"findordr -id");
-            console.log(findOrder.id,"findordr id");
-            const newHistory = {
-                orderId:findOrder._id,
+            
+            // Create wallet history entry
+            const walletHistory = {
+                orderId: findOrder._id,
                 amount: findOrder.totalPrice,
                 status: "credit",
-                date: Date.now()
-            }
+                date: Date.now(),
+                description: `Refund for cancelled order #${findOrder._id}`
+            };
             
-            findUser.history.push(newHistory)
+            // Add to wallet history
+            findUser.history.push(walletHistory);
             await findUser.save();
         }
 
-        // console.log(findOrder);
-
+        // Restore product quantities
         for (const productData of findOrder.product) {
-            const productId = productData.ProductId;
+            const productId = productData._id;  // Assuming this is how your product ID is stored
             const quantity = productData.quantity;
-
+            
             const product = await Product.findById(productId);
-
-            console.log(product, "=>>>>>>>>>");
-
             if (product) {
+                // Increase product quantity
                 product.quantity += quantity;
                 await product.save();
             }
         }
 
-        res.redirect('/profile');
+        let message = 'Order cancelled successfully';
+        if (findOrder.payment === "wallet" || findOrder.payment === "online") {
+            message += `. ₹${findOrder.totalPrice} has been refunded to your wallet.`;
+        }
+
+        res.json({ 
+            success: true, 
+            message: message,
+            refundAmount: findOrder.totalPrice,
+            newWalletBalance: findUser.wallet
+        });
 
     } catch (error) {
-        console.log(error.message);
+        console.error('Cancel order error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Internal server error' 
+        });
     }
-}
-
+};
 
 const returnOrder = async (req, res) => {
   try {
