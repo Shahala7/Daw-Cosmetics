@@ -501,9 +501,7 @@ const cancelOrder = async (req, res) => {
         if (findOrder.payment === "wallet" || findOrder.payment === "online") {
             findUser.wallet += findOrder.totalPrice;
 
-            console.log(findOrder.totalPrice,"findordr total pyrice");
-            console.log(findOrder._id,"findordr -id");
-            console.log(findOrder.id,"findordr id");
+            
             const newHistory = {
                 orderId:findOrder._id,
                 amount: findOrder.totalPrice,
@@ -583,7 +581,7 @@ const returnOrder = async (req, res) => {
           }
       }
       console.log(Product,"prodduct");
-      res.redirect('/profile');
+      res.redirect ('/orderDetails');
 
   } catch (error) {
       console.log(error.message);
