@@ -580,7 +580,9 @@ const returnOrder = async (req, res) => {
 
 const processReturnRequest = async (req, res) => {
     try {
-        const { orderId, userId, products, reason, comments } = req.body;
+       const userId = req.session.user;
+        const { orderId, products, reason, comments } = req.body;
+console.log(req.body,"req.body");
 
         // Enhanced input validation
         if (!orderId || !userId || !reason) {
@@ -636,7 +638,7 @@ const processReturnRequest = async (req, res) => {
 
         try {
             // Update order
-            order.status = "Return Requested";
+            order.status = "Returned";
             order.returnReason = reason;
             order.returnComments = comments;
             order.returnRequestDate = new Date();
@@ -650,7 +652,7 @@ const processReturnRequest = async (req, res) => {
 
             if (order.payment === "wallet" || order.payment === "online") {
                 user.wallet += order.totalPrice;
-                user.walletHistory.push({
+                user.history.push({
                     amount: order.totalPrice,
                     type: "credit",
                     description: `Refund for order ${orderId}`,
