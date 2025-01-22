@@ -603,7 +603,7 @@ const processReturnRequest = async (req, res) => {
         res.json({ 
             success: true, 
             message: 'Return processed successfully',
-            redirectUrl: '/profile/orderslist'
+            redirectUrl: '/profile'
         });
 
     } catch (error) {
