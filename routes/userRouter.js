@@ -71,11 +71,10 @@ Router.delete('/api/cart/items/:productId', isLogged, cartController.deleteProdu
 Router.get("/checkout",isLogged, orderController.getCheckoutPage)
 Router.post("/orderPlaced", isLogged, orderController.orderPlaced)
 Router.get("/orderDetails", isLogged, orderController.getOrderDetailsPage)
-Router.get("/checkoutCart", isLogged, orderController.getCartCheckoutPage)
 Router.get("/cancelOrder", isLogged, orderController.cancelOrder)
 Router.post("/cancelOrder", isLogged, orderController.cancelOrder)
-Router.get("/return", isLogged, orderController.returnOrder)
-Router.post('/raiseReturnRequest',isLogged, orderController.processReturnRequest);
+Router.get('/return', isLogged,orderController.returnOrder);
+Router.post('/processReturn', isLogged,orderController.processReturnRequest);
 Router.post("/verifyPayment", isLogged, orderController.verify)
 Router.get("/invoice", orderController.getInvoice)
 Router.post("/applyCoupon", isLogged, userController.applyCoupon)

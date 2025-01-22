@@ -198,77 +198,73 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('returnForm');
-            const errorContainer = document.getElementById('errorContainer');
-            const checkboxes = document.querySelectorAll('.product-checkbox');
-            
-            // Handle checkbox changes
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', e => {
-                    const quantityInput = document.querySelector(`input[name="quantity-${checkbox.value}"]`);
-                    quantityInput.disabled = !checkbox.checked;
-                    if (!checkbox.checked) {
-                        quantityInput.value = '';
-                    } else {
-                        quantityInput.value = '1';
+       document.addEventListener('DOMContentLoaded', () => {
+    const returnForm = document.getElementById('returnForm');
+    const errorContainer = document.getElementById('errorContainer');
+
+    if (returnForm) {
+        returnForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorContainer.style.display = 'none';
+
+            try {
+                const formData = new FormData(returnForm);
+                const data = {
+                    orderId: formData.get('orderId'),
+                    userId: formData.get('userId'),
+                    reason: formData.get('reason'),
+                    products: []
+                };
+
+                // Collect selected products
+                const productCheckboxes = document.querySelectorAll('.product-checkbox:checked');
+                productCheckboxes.forEach(checkbox => {
+                    const productId = checkbox.value;
+                    const quantity = formData.get(`quantity-${productId}`);
+                    if (quantity) {
+                        data.products.push({
+                            productId,
+                            quantity: parseInt(quantity)
+                        });
                     }
                 });
-            });
 
-            // Form submission
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                errorContainer.style.display = 'none';
-
-                try {
-                    const formData = new FormData(form);
-                    const data = {
-                        userId: formData.get('userId'),
-                        orderId: formData.get('orderId'),
-                        reason: formData.get('reason'),
-                        products: []
-                    };
-
-                    // Collect selected products
-                    const productIds = formData.getAll('productIds');
-                    productIds.forEach(productId => {
-                        const quantity = formData.get(`quantity-${productId}`);
-                        if (quantity) {
-                            data.products.push({
-                                productId,
-                                quantity: parseInt(quantity)
-                            });
-                        }
-                    });
-
-                    if (data.products.length === 0) {
-                        throw new Error('Please select at least one product to return');
-                    }
-
-                    const response = await fetch('/raiseReturnRequest', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    });
-
-                    const result = await response.json();
-                    
-                    if (response.ok) {
-                        alert('Return request submitted successfully');
-                        window.location.href = `/orderDetails?id=${data.orderId}`;
-                    } else {
-                        throw new Error(result.message || 'Failed to submit return request');
-                    }
-                } catch (error) {
-                    errorContainer.textContent = error.message;
-                    errorContainer.style.display = 'block';
-                    console.error('Error:', error);
+                if (data.products.length === 0) {
+                    throw new Error('Please select at least one product to return');
                 }
-            });
+
+                const response = await fetch('/processReturn', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Show success message
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Return request submitted successfully',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        // Redirect to orders list page
+                        window.location.href = '/profile';
+                    });
+                } else {
+                    throw new Error(result.message || 'Failed to submit return request');
+                }
+            } catch (error) {
+                errorContainer.textContent = error.message;
+                errorContainer.style.display = 'block';
+                console.error('Error:', error);
+            }
         });
+    }
+});
     </script>
 </body>
 </html>
