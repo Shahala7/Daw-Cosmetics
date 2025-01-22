@@ -85,48 +85,67 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
     $(document).ready(function() {
-        $('#returnForm').on('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                orderId: $('input[name="orderId"]').val(),
-                userId: $('input[name="userId"]').val(),
-                reason: $('#reason').val(),
-                comments: $('#comments').val(),
-                products: JSON.parse($('input[name="products"]').val())
-            };
+    $('#returnForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            orderId: $('input[name="orderId"]').val(),
+            userId: $('input[name="userId"]').val(),
+            reason: $('#reason').val(),
+            comments: $('#comments').val(),
+            products: JSON.parse($('input[name="products"]').val())
+        };
 
-            $.ajax({
-                url: '/processReturn',
-                method: 'POST',
-                data: formData,
-                success: function(response) {
-                    if (response.success) {
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Return request processed successfully',
-                            icon: 'success'
-                        }).then(() => {
-                            window.location.href = response.redirectUrl;
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: response.message,
-                            icon: 'error'
-                        });
-                    }
-                },
-                error: function(xhr, status, error) {
+        console.log('Sending form data:', formData);
+
+        $.ajax({
+            url: '/processReturn',
+            method: 'POST',
+            data: formData,
+            success: function(response) {
+                console.log('Response received:', response);
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Return request processed successfully',
+                        icon: 'success'
+                    }).then(() => {
+                        window.location.href = response.redirectUrl;
+                    });
+                } else {
                     Swal.fire({
                         title: 'Error!',
-                        text: 'Failed to process return request',
+                        text: response.message || 'Failed to process return request',
                         icon: 'error'
                     });
                 }
-            });
+            },
+            error: function(xhr, status, error) {
+                console.error('Ajax error:', {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    responseText: xhr.responseText
+                });
+                
+                let errorMessage = 'Failed to process return request';
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    errorMessage = response.message || errorMessage;
+                } catch (e) {
+                    console.error('Error parsing response:', e);
+                }
+
+                Swal.fire({
+                    title: 'Error!',
+                    text: errorMessage,
+                    icon: 'error'
+                });
+            },
+            contentType: 'application/json',
+            dataType: 'json'
         });
     });
+});
     </script>
 </body>
 </html>
