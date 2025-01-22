@@ -1,270 +1,113 @@
-
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Return Request Form</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .container {
-            background: #fff;
-            padding: 20px 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        .return-form {
             max-width: 600px;
-            width: 100%;
-            margin: 20px auto;
-        }
-
-        .error-container {
-            color: #dc3545;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #dc3545;
-            border-radius: 5px;
-            display: none;
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-        }
-
-        .section {
-            margin-bottom: 25px;
-            padding: 15px;
-            background: #f8f9fa;
+            margin: 2rem auto;
+            padding: 2rem;
             border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-
-        .section h2 {
-            color: #495057;
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.2em;
+        .form-group {
+            margin-bottom: 1rem;
         }
-
-        .info-item {
-            margin: 8px 0;
-            color: #666;
-        }
-
-        .info-label {
-            font-weight: bold;
-            color: #495057;
-        }
-
-        .product-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-
-        .product-details {
-            flex-grow: 1;
-            margin-left: 10px;
-        }
-
-        .quantity-input {
-            width: 60px;
-            padding: 5px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            margin-left: 10px;
-        }
-
-        textarea {
+        .form-control {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            min-height: 100px;
-            margin-top: 10px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
         }
-
-        .submit-btn {
-            background-color: #28a745;
+        .btn-submit {
+            background-color: #dc3545;
             color: white;
+            padding: 0.5rem 1rem;
             border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
-            width: 100%;
-            font-size: 16px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .submit-btn:hover {
-            background-color: #218838;
-        }
-
-        .submit-btn:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                padding: 15px;
-            }
-
-            .product-item {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .quantity-input {
-                margin-top: 10px;
-                margin-left: 0;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Return Request Form</h1>
-        
-        <div class="error-container" id="errorContainer"></div>
-
+    <div class="return-form">
+        <h2>Return Request Form</h2>
         <form id="returnForm">
             <input type="hidden" name="orderId" value="<%= order._id %>">
             <input type="hidden" name="userId" value="<%= user._id %>">
-
-            <div class="section">
-                <h2>User Information</h2>
-                <div class="info-item">
-                    <span class="info-label">Name:</span> <%= user.name %>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Email:</span> <%= user.email %>
-                </div>
+            <!-- Add this new hidden input to store products data -->
+            <input type="hidden" name="products" value='<%= JSON.stringify(order.product) %>'>
+            
+            <div class="form-group">
+                <label>Order Details:</label>
+                <div>Order ID: <%= order._id %></div>
+                <div>Total Amount: ₹<%= order.totalPrice %></div>
             </div>
 
-            <div class="section">
-                <h2>Order Information</h2>
-                <div class="info-item">
-                    <span class="info-label">Order ID:</span> <%= order._id %>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Order Date:</span> <%= new Date(order.date).toLocaleDateString() %>
-                </div>
+            <div class="form-group">
+                <label for="reason">Reason for Return:</label>
+                <select name="reason" id="reason" class="form-control" required>
+                    <option value="">Select a reason</option>
+                    <option value="defective">Product is defective</option>
+                    <option value="wrong_item">Received wrong item</option>
+                    <option value="not_satisfied">Not satisfied with the product</option>
+                    <option value="other">Other</option>
+                </select>
             </div>
 
-            <div class="section">
-                <h2>Select Products to Return</h2>
-                <% products.forEach(product => { %>
-                    <div class="product-item">
-                        <input type="checkbox" 
-                               name="productIds" 
-                               value="<%= product._id %>" 
-                               id="product-<%= product._id %>" 
-                               class="product-checkbox">
-                        <div class="product-details">
-                            <label for="product-<%= product._id %>">
-                                <%= product.name %> - ₹<%= product.price %>
-                            </label>
-                            <input type="number" 
-                                   name="quantity-<%= product._id %>" 
-                                   min="1" 
-                                   max="<%= product.quantity %>" 
-                                   class="quantity-input" 
-                                   disabled 
-                                   required>
-                        </div>
-                    </div>
-                <% }); %>
+            <div class="form-group">
+                <label for="comments">Additional Comments:</label>
+                <textarea name="comments" id="comments" class="form-control" rows="4"></textarea>
             </div>
 
-            <div class="section">
-                <h2>Reason for Return</h2>
-                <textarea name="reason" 
-                          placeholder="Please provide detailed reason for return" 
-                          required></textarea>
-            </div>
-
-            <button type="submit" class="submit-btn">Submit Return Request</button>
+            <button type="submit" class="btn-submit">Submit Return Request</button>
         </form>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-       document.addEventListener('DOMContentLoaded', () => {
-    const returnForm = document.getElementById('returnForm');
-    const errorContainer = document.getElementById('errorContainer');
-
-    if (returnForm) {
-        returnForm.addEventListener('submit', async (e) => {
+    $(document).ready(function() {
+        $('#returnForm').on('submit', function(e) {
             e.preventDefault();
-            errorContainer.style.display = 'none';
+            
+            const formData = {
+                orderId: $('input[name="orderId"]').val(),
+                userId: $('input[name="userId"]').val(),
+                reason: $('#reason').val(),
+                comments: $('#comments').val(),
+                products: JSON.parse($('input[name="products"]').val())
+            };
 
-            try {
-                const formData = new FormData(returnForm);
-                const data = {
-                    orderId: formData.get('orderId'),
-                    userId: formData.get('userId'),
-                    reason: formData.get('reason'),
-                    products: []
-                };
-
-                // Collect selected products
-                const productCheckboxes = document.querySelectorAll('.product-checkbox:checked');
-                productCheckboxes.forEach(checkbox => {
-                    const productId = checkbox.value;
-                    const quantity = formData.get(`quantity-${productId}`);
-                    if (quantity) {
-                        data.products.push({
-                            productId,
-                            quantity: parseInt(quantity)
+            $.ajax({
+                url: '/processReturn',
+                method: 'POST',
+                data: formData,
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Return request processed successfully',
+                            icon: 'success'
+                        }).then(() => {
+                            window.location.href = response.redirectUrl;
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message,
+                            icon: 'error'
                         });
                     }
-                });
-
-                if (data.products.length === 0) {
-                    throw new Error('Please select at least one product to return');
-                }
-
-                const response = await fetch('/processReturn', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-                
-                if (response.ok && result.success) {
-                    // Show success message
+                },
+                error: function(xhr, status, error) {
                     Swal.fire({
-                        title: 'Success!',
-                        text: 'Return request submitted successfully',
-                        icon: 'success',
-                        confirmButtonText: 'OK'
-                    }).then(() => {
-                        // Redirect to orders list page
-                        window.location.href = '/profile';
+                        title: 'Error!',
+                        text: 'Failed to process return request',
+                        icon: 'error'
                     });
-                } else {
-                    throw new Error(result.message || 'Failed to submit return request');
                 }
-            } catch (error) {
-                errorContainer.textContent = error.message;
-                errorContainer.style.display = 'block';
-                console.error('Error:', error);
-            }
+            });
         });
-    }
-});
+    });
     </script>
 </body>
 </html>

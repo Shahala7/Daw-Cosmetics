@@ -535,86 +535,130 @@ const cancelOrder = async (req, res) => {
         console.log(error.message);
     }
 }
-
 const returnOrder = async (req, res) => {
     try {
         const orderId = req.query.id;
-        // Instead of processing return directly, render the return request form
+        
+        // Fetch order details with populated product information
         const order = await Order.findById(orderId)
-            .populate('product.ProductId');
+            .populate('product._id') // Assuming this is how your product reference is structured
+            .lean(); // For better performance
         
         if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
+            return res.status(404).render('error', {
+                message: 'Order not found',
+                user: req.session.user
+            });
         }
 
-        // Render the return request form with order details
+        // Check if order is eligible for return
+        const orderDate = new Date(order.orderDate);
+        const currentDate = new Date();
+        const daysDifference = Math.floor((currentDate - orderDate) / (1000 * 60 * 60 * 24));
+
+        if (daysDifference > 7) { // 7 days return policy
+            return res.status(400).render('error', {
+                message: 'Return period has expired',
+                user: req.session.user
+            });
+        }
+
+        // Render return form
         res.render('returnRequestForm', {
             order: order,
             user: req.session.user
         });
 
     } catch (error) {
-        console.log(error.message);
-        res.status(500).json({ message: 'Internal server error' });
+        console.error('Return Order Error:', error);
+        res.status(500).render('error', {
+            message: 'Something went wrong',
+            user: req.session.user
+        });
     }
-}
+};
 
 const processReturnRequest = async (req, res) => {
     try {
-        const { orderId, userId, products, reason } = req.body;
+        const { orderId, userId, products, reason, comments } = req.body;
+
+        // Validate input
+        if (!orderId || !userId || !reason) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required fields'
+            });
+        }
+
+        // Find and update order
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
 
         // Update order status
-        await Order.updateOne(
-            { _id: orderId },
-            { 
-                status: "Returned",
-                returnReason: reason,
-                returnDate: Date.now()
-            }
-        );
+        order.status = "Returned";
+        order.returnReason = reason;
+        order.returnComments = comments;
+        order.returnDate = new Date();
+        await order.save();
 
-        const findOrder = await Order.findOne({ _id: orderId });
-        const findUser = await User.findOne({ _id: userId });
+        // Process refund
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
 
-        // Process refund if payment was made through wallet or online
-        if (findOrder.payment === "wallet" || findOrder.payment === "online") {
-            findUser.wallet += findOrder.totalPrice;
+        // Handle refund based on payment method
+        if (order.payment === "wallet" || order.payment === "online") {
+            user.wallet += order.totalPrice;
             
-            const newHistory = {
-                amount: findOrder.totalPrice,
-                status: "credit",
+            // Add to wallet history
+            user.walletHistory.push({
+                amount: order.totalPrice,
+                type: "credit",
                 description: `Refund for order ${orderId}`,
-                date: Date.now()
-            };
-            findUser.history.push(newHistory);
-            await findUser.save();
+                date: new Date()
+            });
+            
+            await user.save();
         }
 
-        // Update product quantities
-        for (const productData of products) {
-            const product = await Product.findById(productData.productId);
-            if (product) {
-                product.quantity += parseInt(productData.quantity);
-                await product.save();
+        // Update product inventory
+        if (Array.isArray(products)) {
+            for (const item of products) {
+                if (item._id) { // Ensure product ID exists
+                    const product = await Product.findById(item._id);
+                    if (product) {
+                        product.quantity += (item.quantity || 1); // Default to 1 if quantity not specified
+                        await product.save();
+                    }
+                }
             }
         }
 
-        // Redirect to profile/orderslist page
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: 'Return processed successfully',
             redirectUrl: '/profile'
         });
 
     } catch (error) {
-        console.log(error.message);
-        res.status(500).json({ 
-            success: false, 
+        console.error('Process Return Error:', error);
+        res.status(500).json({
+            success: false,
             message: 'Error processing return',
-            error: error.message 
+            error: error.message
         });
     }
-}
+};
+
 const changeOrderStatus = async (req, res) => {
     try {
 
