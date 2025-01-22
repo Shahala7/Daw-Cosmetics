@@ -481,60 +481,149 @@ const cancelOrderItem = async (req, res) => {
 };
 const cancelOrder = async (req, res) => {
     try {
-        console.log("im here");
-        const userId = req.session.user
-        const findUser = await User.findOne({ _id: userId })
+        // Add request logging
+        console.log('Cancel order request received:', {
+            method: req.method,
+            orderId: req.body.orderId,
+            userId: req.session.user
+        });
 
+        const userId = req.session.user;
+        if (!userId) {
+            console.log('User session not found');
+            return res.status(401).json({
+                success: false,
+                message: 'User not authenticated'
+            });
+        }
+
+        const findUser = await User.findOne({ _id: userId });
         if (!findUser) {
-            return res.status(404).json({ message: 'User not found' });
+            console.log('User not found in database:', userId);
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
         }
 
-        const orderId = req.query.orderId
-        // console.log(orderId);
+        const orderId = req.body.orderId;
+        if (!orderId) {
+            console.log('Order ID missing in request');
+            return res.status(400).json({
+                success: false,
+                message: 'Order ID is required'
+            });
+        }
 
-        await Order.updateOne({ _id: orderId },
-            { status: "Canceled" }
-        ).then((data) => console.log(data))
+        // Validate orderId format
+        if (!mongoose.Types.ObjectId.isValid(orderId)) {
+            console.log('Invalid order ID format:', orderId);
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid order ID format'
+            });
+        }
 
-        const findOrder = await Order.findOne({ _id: orderId })
+        const findOrder = await Order.findOne({ _id: orderId }).lean();
+        if (!findOrder) {
+            console.log('Order not found:', orderId);
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
 
-        if (findOrder.payment === "wallet" || findOrder.payment === "online") {
-            findUser.wallet += findOrder.totalPrice;
+        // Check if order is already canceled
+        if (findOrder.status === "Canceled") {
+            console.log('Order already canceled:', orderId);
+            return res.status(400).json({
+                success: false,
+                message: 'Order is already canceled'
+            });
+        }
 
-            
-            const newHistory = {
-                orderId:findOrder._id,
-                amount: findOrder.totalPrice,
-                status: "credit",
-                date: Date.now()
+        // Start a session for transaction
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        try {
+            // Update order status
+            const updateResult = await Order.updateOne(
+                { 
+                    _id: orderId,
+                    status: { $ne: "Canceled" } // Prevent double cancellation
+                },
+                { status: "Canceled" },
+                { session }
+            );
+
+            if (updateResult.matchedCount === 0) {
+                throw new Error('Order not found or already canceled');
             }
-            
-            findUser.history.push(newHistory)
-            await findUser.save();
-        }
 
-        // console.log(findOrder);
+            // Process refund if applicable
+            if (findOrder.payment === "wallet" || findOrder.payment === "online") {
+                const walletUpdate = await User.updateOne(
+                    { _id: userId },
+                    {
+                        $inc: { wallet: findOrder.totalPrice },
+                        $push: {
+                            history: {
+                                orderId: findOrder._id,
+                                amount: findOrder.totalPrice,
+                                status: "credit",
+                                date: new Date()
+                            }
+                        }
+                    },
+                    { session }
+                );
 
-        for (const productData of findOrder.product) {
-            const productId = productData.ProductId;
-            const quantity = productData.quantity;
-
-            const product = await Product.findById(productId);
-
-            console.log(product, "=>>>>>>>>>");
-
-            if (product) {
-                product.quantity += quantity;
-                await product.save();
+                if (walletUpdate.matchedCount === 0) {
+                    throw new Error('Failed to update user wallet');
+                }
             }
-        }
 
-        res.redirect('/profile');
+            // Restore product quantities
+            for (const productData of findOrder.product) {
+                const updateResult = await Product.updateOne(
+                    { _id: productData._id },
+                    { $inc: { quantity: productData.quantity } },
+                    { session }
+                );
+
+                if (updateResult.matchedCount === 0) {
+                    throw new Error(`Product not found: ${productData._id}`);
+                }
+            }
+
+            // Commit the transaction
+            await session.commitTransaction();
+
+            console.log('Order successfully canceled:', orderId);
+            return res.status(200).json({
+                success: true,
+                message: 'Order cancelled successfully'
+            });
+
+        } catch (error) {
+            // If anything fails, abort the transaction
+            await session.abortTransaction();
+            throw error; // Re-throw to be caught by outer catch block
+        } finally {
+            // End the session
+            session.endSession();
+        }
 
     } catch (error) {
-        console.log(error.message);
+        console.error('Cancel order error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to cancel order',
+            error: error.message
+        });
     }
-}
+};
 const returnOrder = async (req, res) => {
     try {
         const orderId = req.query.id;
