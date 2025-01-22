@@ -582,7 +582,7 @@ const processReturnRequest = async (req, res) => {
     try {
         const { orderId, userId, products, reason, comments } = req.body;
 
-        // Validate input
+        // Enhanced input validation
         if (!orderId || !userId || !reason) {
             return res.status(400).json({
                 success: false,
@@ -590,7 +590,18 @@ const processReturnRequest = async (req, res) => {
             });
         }
 
-        // Find and update order
+        // Parse products if it's a string (coming from hidden input)
+        let parsedProducts;
+        try {
+            parsedProducts = typeof products === 'string' ? JSON.parse(products) : products;
+        } catch (error) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid products data format'
+            });
+        }
+
+        // Find and validate order
         const order = await Order.findById(orderId);
         if (!order) {
             return res.status(404).json({
@@ -599,55 +610,83 @@ const processReturnRequest = async (req, res) => {
             });
         }
 
-        // Update order status
-        order.status = "Returned";
-        order.returnReason = reason;
-        order.returnComments = comments;
-        order.returnDate = new Date();
-        await order.save();
-
-        // Process refund
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({
+        // Verify order belongs to user
+        if (order.userId.toString() !== userId) {
+            return res.status(403).json({
                 success: false,
-                message: 'User not found'
+                message: 'Unauthorized access to order'
             });
         }
 
-        // Handle refund based on payment method
-        if (order.payment === "wallet" || order.payment === "online") {
-            user.wallet += order.totalPrice;
-            
-            // Add to wallet history
-            user.walletHistory.push({
-                amount: order.totalPrice,
-                type: "credit",
-                description: `Refund for order ${orderId}`,
-                date: new Date()
+        // Validate return eligibility
+        const orderDate = new Date(order.orderDate);
+        const currentDate = new Date();
+        const daysDifference = Math.floor((currentDate - orderDate) / (1000 * 60 * 60 * 24));
+
+        if (daysDifference > 7) {
+            return res.status(400).json({
+                success: false,
+                message: 'Return period has expired'
             });
-            
-            await user.save();
         }
 
-        // Update product inventory
-        if (Array.isArray(products)) {
-            for (const item of products) {
-                if (item._id) { // Ensure product ID exists
-                    const product = await Product.findById(item._id);
-                    if (product) {
-                        product.quantity += (item.quantity || 1); // Default to 1 if quantity not specified
-                        await product.save();
-                    }
+        // Update order status with transaction
+        const session = await mongoose.startSession();
+        await session.startTransaction();
+
+        try {
+            // Update order
+            order.status = "Return Requested";
+            order.returnReason = reason;
+            order.returnComments = comments;
+            order.returnRequestDate = new Date();
+            await order.save({ session });
+
+            // Process refund if applicable
+            const user = await User.findById(userId).session(session);
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            if (order.payment === "wallet" || order.payment === "online") {
+                user.wallet += order.totalPrice;
+                user.walletHistory.push({
+                    amount: order.totalPrice,
+                    type: "credit",
+                    description: `Refund for order ${orderId}`,
+                    date: new Date()
+                });
+                await user.save({ session });
+            }
+
+            // Update inventory
+            for (const item of parsedProducts) {
+                if (!item._id) continue;
+                
+                const product = await Product.findById(
+                    typeof item._id === 'object' ? item._id._id : item._id
+                ).session(session);
+                
+                if (product) {
+                    product.quantity += Number(item.quantity) || 1;
+                    await product.save({ session });
                 }
             }
-        }
 
-        res.json({
-            success: true,
-            message: 'Return processed successfully',
-            redirectUrl: '/profile'
-        });
+            await session.commitTransaction();
+            
+            res.json({
+                success: true,
+                message: 'Return request processed successfully',
+                redirectUrl: '/profile'
+            });
+
+        } catch (error) {
+            await session.abortTransaction();
+            throw error;
+        } finally {
+            session.endSession();
+        }
 
     } catch (error) {
         console.error('Process Return Error:', error);
