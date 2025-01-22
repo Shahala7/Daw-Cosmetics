@@ -412,10 +412,9 @@
     <script>
 // Frontend JavaScript function
 function verifyReferalCode(event) {
-    event.preventDefault();
+    event.preventDefault(); // Prevent default form submission
     
     const referalCode = document.getElementById('referalCode').value;
-    const walletDisplay = document.getElementById('walletAmount'); // Add this ID to your wallet display element
     
     fetch('/profile/verifyReferalCode', {
         method: 'POST',
@@ -426,23 +425,24 @@ function verifyReferalCode(event) {
     })
     .then(response => response.json())
     .then(data => {
-        // Show message
         if (data.success) {
-            // Update wallet amount display
-            if (walletDisplay) {
-                walletDisplay.textContent = `₹${data.updatedWallet}`;
+            // Update wallet display if needed
+            if (data.updatedWallet !== undefined) {
+                // Assuming you have an element to display the wallet
+                const walletElement = document.getElementById('walletBalance');
+                if (walletElement) {
+                    walletElement.textContent = data.updatedWallet;
+                }
             }
-            // Clear the input field
-            document.getElementById('referalCode').value = '';
-            // Show success message
-            showToast(data.message, 'success');
+            alert(data.message);
+            location.reload(); // Reload the page to reflect changes
         } else {
-            showToast(data.message, 'error');
+            alert(data.message);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showToast('Something went wrong. Please try again.', 'error');
+        alert('An error occurred while processing your request.');
     });
 }
 
