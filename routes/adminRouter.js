@@ -26,11 +26,9 @@ Router.get("/addcategory", isAdmin, categoryController.getaddCategory);
 Router.post("/addCategory", isAdmin, categoryController.addCategory);
 Router.get("/allCategory", isAdmin, categoryController.getAllCategories);
 Router.get("/listCategory", isAdmin, categoryController.listCategory);
-Router.get("/unListCategory", isAdmin, categoryController.unListCategory);
-Router.get("/editCategory", isAdmin, categoryController.getEditCategory);
-Router.post("/editCategory/:id", isAdmin, categoryController.editCategory);
-Router.post("/addCategoryOffer", isAdmin, categoryController.addCategoryOffer);
-Router.post("/removeCategoryOffer", isAdmin, categoryController.removeCategoryOffer);
+Router.get("/unListCategory", isAdmin, categoryController.unListCategory)
+Router.get("/addCategoryOffer", isAdmin, categoryController.addCategoryOffer);
+Router.get("/removeCategoryOffer", isAdmin, categoryController.removeCategoryOffer);
 
 // Customer Management
 Router.get("/users", isAdmin, customerController.getCustomersInfo);

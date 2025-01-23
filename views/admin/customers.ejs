@@ -59,13 +59,24 @@
         </ul>
     </nav>
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    function confirmAction(url) {
-        if (confirm("Are you sure you want to proceed with this action?")) {
+function confirmAction(url) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'Do you want to proceed with this action?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, proceed!'
+    }).then((result) => {
+        if (result.isConfirmed) {
             window.location.href = url;
         }
-    }
+    });
+}
+
 </script>
 
 <%- include("../partials/adminFooter") %>

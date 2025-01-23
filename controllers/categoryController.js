@@ -64,9 +64,9 @@ const getCategoryInfo = async (req, res) => {
             .limit(limit)
             .lean();
 
-        console.log('Categories with pagination:', categories);
-        console.log('Skip value:', skip);
-        console.log('Limit value:', limit);
+        // console.log('Categories with pagination:', categories);
+        // console.log('Skip value:', skip);
+        // console.log('Limit value:', limit);
 
         const totalCategories = await Category.countDocuments(filter);
 
@@ -201,7 +201,7 @@ const listCategory = async (req, res) => {
         }
 
         await Category.findByIdAndUpdate(categoryId, { isListed: false });
-        res.redirect("/admin/categories");
+        res.redirect("/admin/category");
     } catch (error) {
         console.error("Error in listCategory:", error);
         res.status(500).send("An error occurred while updating category status");
@@ -216,49 +216,19 @@ const unListCategory = async (req, res) => {
         }
 
         await Category.findByIdAndUpdate(categoryId, { isListed: true });
-        res.redirect("/admin/categories");
+        res.redirect("/admin/category");
     } catch (error) {
         console.error("Error in unListCategory:", error);
         res.status(500).send("An error occurred while updating category status");
     }
 };
 
-const getEditCategory = async (req, res) => {
-    try {
-        const id = req.query.id
-        const category = await Category.findOne({ _id: id })
-        res.render("edit-category", { category: category })
-    } catch (error) {
-        console.log(error.message);
-    }
-}
-
-
-const editCategory = async (req, res) => {
-    try {
-        const id = req.params.id
-        const { categoryName, description } = req.body
-        const findCategory = await Category.find({ _id: id })
-        if (findCategory) {
-            await Category.updateOne(
-                { _id: id },
-                {
-                    name: categoryName,
-                    description: description
-                })
-            res.redirect("/admin/category")
-        } else {
-            console.log("Category not found");
-        }
-
-    } catch (error) {
-        console.log(error.message);
-    }
-}
 
 
 const addCategoryOffer = async (req, res) => {
     try {
+        console.log( req.query,"req.query");
+        
         const { id, offer } = req.query;
         if (!id || !offer) {
             return res.status(400).send("Category ID and offer percentage are required");
@@ -270,7 +240,7 @@ const addCategoryOffer = async (req, res) => {
         }
 
         await Category.findByIdAndUpdate(id, { categoryOffer: offerValue });
-        res.redirect("/admin/categories");
+        res.redirect("/admin/category");
     } catch (error) {
         console.error("Error in addCategoryOffer:", error);
         res.status(500).send("An error occurred while adding category offer");
@@ -286,7 +256,7 @@ const removeCategoryOffer = async (req, res) => {
         }
 
         await Category.findByIdAndUpdate(id, { categoryOffer: 0 });
-        res.redirect("/admin/categories");
+        res.redirect("/admin/category");
     } catch (error) {
         console.error("Error in removeCategoryOffer:", error);
         res.status(500).send("An error occurred while removing category offer");
@@ -298,8 +268,6 @@ module.exports = {
     getAllCategories,
     listCategory,
     unListCategory,
-    editCategory,
-    getEditCategory,
     addCategoryOffer,
     removeCategoryOffer,
     subcategories,

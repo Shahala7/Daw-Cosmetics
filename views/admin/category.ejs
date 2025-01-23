@@ -134,32 +134,63 @@
         </nav>
     </div>
 <% } %>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function addOffer(categoryId) {
-    const offerPercentage = prompt('Enter offer percentage (0-100):');
-    if (offerPercentage !== null) {
-        const percentage = parseFloat(offerPercentage);
-        if (!isNaN(percentage) && percentage >= 0 && percentage <= 100) {
-            window.location.href = `/admin/addCategoryOffer?id=${categoryId}&offer=${percentage}`;
-        } else {
-            alert('Please enter a valid percentage between 0 and 100');
+    Swal.fire({
+        title: 'Enter Offer Percentage',
+        input: 'number',
+        inputLabel: 'Percentage (0-100)',
+        inputPlaceholder: 'Enter percentage',
+        inputAttributes: {
+            min: 0,
+            max: 100,
+            step: 1
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Add Offer',
+        inputValidator: (value) => {
+            if (!value || isNaN(parseFloat(value)) || parseFloat(value) < 0 || parseFloat(value) > 100) {
+                return 'Please enter a valid percentage between 0 and 100';
+            }
         }
-    }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/admin/addCategoryOffer?id=${categoryId}&offer=${result.value}`;
+        }
+    });
 }
 
 function removeOffer(categoryId) {
-    if (confirm('Are you sure you want to remove this offer?')) {
-        window.location.href = `/admin/removeCategoryOffer?id=${categoryId}`;
-    }
+    Swal.fire({
+        title: 'Remove Category Offer',
+        text: 'Are you sure you want to remove this offer?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, remove it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/admin/removeCategoryOffer?id=${categoryId}`;
+        }
+    });
 }
 
 function confirmAction(url) {
-    if (confirm("Are you sure you want to proceed with this action?")) {
-        window.location.href = url;
-        return false;
-    }
-    return false;
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'Do you want to proceed with this action?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, proceed!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
 }
 </script>
     <%- include("../partials/adminFooter") %>
